@@ -1,6 +1,7 @@
 #ifndef EFFECTS_H_
 #define EFFECTS_H_
 
+#include "ship.h"
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -10,41 +11,47 @@
 namespace eve {
 
 using std::unordered_map;
+using std::shared_ptr;
+using std::vector;
+using std::make_unique;
+
+class Ship;
 
 class ShipEffect {
   public:
     enum Type {
       StasisWebifier,
     };
+    
+    ShipEffect(ShipEffect::Type type, float strength, std::string source)
+        : type_(type), strength_(strength), source_(source) {}
 
-    ShipEffect(Type type, std::string source, float strength);
-
-    inline virtual Type GetType() const {
+    virtual ~ShipEffect() = default;
+    
+    inline ShipEffect::Type GetType() const {
       return type_;
     }
 
-    inline virtual float GetStrength() const {
+    virtual float Strength() const {
       return strength_;
     }
-
-    inline virtual std::string GetSource() const  {
+    
+    virtual const std::string& Source() const {
       return source_;
     }
-
-  private:
-    Type type_;
-    std::string source_;
-    float strength_;
+    private:
+      ShipEffect::Type type_;
+      float strength_;
+      std::string source_;
 };
 
 class ShipEffectVector {
   public:
-    ShipEffectVector(std::initializer_list<std::shared_ptr<ShipEffect>> list)
-        : effect_array_(list) {}
-    
-    bool InsertEffect(std::shared_ptr<ShipEffect> effect);
+    ShipEffectVector() {}
 
-    bool RemoveEffect(std::string& source);
+    bool InsertEffect(shared_ptr<ShipEffect> effect);
+
+    bool EraseEffect(shared_ptr<ShipEffect> effect);
 
     inline ShipEffect* GetStrongestEffect() {
       if (IsEmpty()) {
@@ -53,7 +60,11 @@ class ShipEffectVector {
       return effect_array_[0].get();
     }
 
-   inline bool IsEmpty() const {
+    inline std::vector<float>* GetEffectStrVector() {
+      return &effect_str_vector_;
+    }
+
+    inline bool IsEmpty() const {
       return effect_array_.empty();
     }
     
@@ -65,38 +76,71 @@ class ShipEffectVector {
       return effect_array_.size();
     }
 
-    inline auto Begin() {
+    inline auto begin() {
       return effect_array_.begin();
     }
 
-    inline auto End() {
+    inline auto end() {
       return effect_array_.end();
     }
 
+  protected:
+    vector<shared_ptr<ShipEffect>> effect_array_;
+    vector<float> effect_str_vector_;
+};
+
+class EffectManager : public ShipEffectVector {
+  public:
+    virtual ~EffectManager() = default;
+
+    virtual ShipEffect::Type Type() const = 0;
+
+    virtual void ApplyEffect(shared_ptr<ShipEffect> effect) = 0;
+
+    virtual bool RemoveEffect(shared_ptr<ShipEffect> effect);
+
+    virtual void CalculateApplyEffect() = 0;
+};
+
+class StasisWebifierManager : public EffectManager {
+  public:
+    StasisWebifierManager(Ship* ship)
+        : ship_(ship), type_(ShipEffect::StasisWebifier) {}
+
+    inline ShipEffect::Type Type() const override {
+      return type_;
+    }
+
+    void ApplyEffect(shared_ptr<ShipEffect> effect) override;
+    void CalculateApplyEffect() override;
+
   private:
-    std::vector<shared_ptr<ShipEffect>> effect_array_;
+    const ShipEffect::Type type_;
+    Ship* ship_;
 };
 
 class ShipEffectsMap {
   public:
-    ShipEffectsMap() {}
+    ShipEffectsMap(Ship* ship)
+        : ship_(ship) {}
 
-    bool AddEffect(shared_ptr<ShipEffect> effect);
+    void AddEffect(shared_ptr<ShipEffect> effect);
     
-    bool RemoveEffect(ShipEffect::Type type, std::string& source);
+    bool RemoveEffect(shared_ptr<ShipEffect> effect);
 
-    ShipEffectVector* GetEffect(ShipEffect effect);
+    shared_ptr<EffectManager> GetEffectManager(shared_ptr<ShipEffect> effect);
 
-    inline auto Begin() const {
+    inline auto begin() const {
       return effects_map_.begin();
     }
 
-    inline auto End() const {
+    inline auto end() const {
       return effects_map_.end();
     }
 
   private:
-    unordered_map<ShipEffect::Type, ShipEffectVector> effects_map_;
+    unordered_map<ShipEffect::Type, shared_ptr<EffectManager>> effects_map_;
+    Ship* ship_;
 };
 
 } // namespace eve
