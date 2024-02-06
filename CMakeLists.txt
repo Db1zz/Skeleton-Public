@@ -8,7 +8,9 @@ set(SOURCE
     Skeleton/eve/npc_ship.h
     Skeleton/eve/player_ship.h
     Skeleton/eve/ship.h
-    Skeleton/eve/eve_math.h)
+    Skeleton/eve/eve_math.h
+    Skeleton/db/db_loader.h
+    Skeleton/db/db_loader.cc)
 
 add_executable(${PROJECT_NAME} ${SOURCE})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17
