@@ -1,7 +1,6 @@
 #ifndef EFFECTS_H_
 #define EFFECTS_H_
 
-#include "ship.h"
 #include <vector>
 #include <unordered_map>
 #include <memory>
@@ -112,6 +111,7 @@ class StasisWebifierManager : public EffectManager {
     }
 
     void ApplyEffect(shared_ptr<ShipEffect> effect) override;
+
     void CalculateApplyEffect() override;
 
   private:
@@ -125,7 +125,7 @@ class ShipEffectsMap {
         : ship_(ship) {}
 
     void AddEffect(shared_ptr<ShipEffect> effect);
-    
+
     bool RemoveEffect(shared_ptr<ShipEffect> effect);
 
     shared_ptr<EffectManager> GetEffectManager(shared_ptr<ShipEffect> effect);

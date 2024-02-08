@@ -1,11 +1,13 @@
 #include "../Skeleton/eve/player_ship.h"
+#include "../Skeleton/eve/effects.h"
+#include "../Skeleton/eve/ship_weapon.h"
 #include <iostream>
 #include <memory>
 
 using namespace eve;
 
-int main() {
-  shared_ptr<PlayerShipEngine> e = std::make_unique<PlayerShipEngine>(925);
+void StackingPenaltyCalculationTest() {
+  shared_ptr<ShipEngine> e = std::make_unique<ShipEngine>(925);
   PlayerShip ship(e);
 
   ShipEffect effect1(ShipEffect::StasisWebifier, 50, "None1");
@@ -18,6 +20,27 @@ int main() {
   std::cout << "Applied 55% effect: " << e.get()->Velocity() << '\n';
   ship.ApplyEffect(std::make_unique<ShipEffect>(effect3));
   std::cout << "Applied 60% effect: " << e.get()->Velocity() << '\n';
+}
 
+void DpsCalculationTest() {
+  ResistanceProfile res(0, 0, 0.80, 0);
+  DamageProfile dmg_profile(0, 0, 239, 0);
+  shared_ptr<Missile> missile = std::make_unique<Missile>(0, 0, &dmg_profile);
+  MissileLauncher weapon(3.65, 35.0, 4);
+  weapon.LoadAmmo(missile);
+  std::cout << "Dps: " << weapon.Dps(&res) << '\n';
+}
+
+int main() {
+  
+  // StackingPenaltyCalculationTest();
+  // DpsCalculationTest();
+
+  float bonus = 0.25;
+  float c = 100;
+  c = c * (1 + bonus);
+  std::cout << c << std::endl;
+  c = c / (1 + bonus);
+  std::cout << c << std::endl;
   return 0;
 }
