@@ -20,6 +20,15 @@ class ShipEffect {
   public:
     enum Type {
       StasisWebifier,
+      EnergyNeutralizer,
+      WeaponDisruptor,
+      GuidanceDisruptor,
+      WarpScrambler,
+      TargetPainter,
+      SensorDampener,
+      RemoteRepair,
+      
+      None
     };
     
     ShipEffect(ShipEffect::Type type, float strength, std::string source)
@@ -38,6 +47,7 @@ class ShipEffect {
     virtual const std::string& Source() const {
       return source_;
     }
+    
     private:
       ShipEffect::Type type_;
       float strength_;
