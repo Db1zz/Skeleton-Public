@@ -23,24 +23,19 @@ void StackingPenaltyCalculationTest() {
 }
 
 void DpsCalculationTest() {
-  ResistanceProfile res(0, 0, 0.80, 0);
-  DamageProfile dmg_profile(0, 0, 239, 0);
-  shared_ptr<Missile> missile = std::make_unique<Missile>(0, 0, &dmg_profile);
-  MissileLauncher weapon(3.65, 35.0, 4);
-  weapon.LoadAmmo(missile);
+  ResistanceProfile res(0.0, 0.0, 0.0, 0.0);
+
+  DamageProfile base_dmg(0, 0, 0, 0);
+  DamageProfile dmg_profile(0, 12, 16.8, 0);
+  shared_ptr<TurretAmmo> ammo = std::make_unique<TurretAmmo>(
+                                    0.75, 0.50, 1.0, &dmg_profile);
+  TurretWeapon weapon(4.19, 0, 5, 13.2, 18000, 225000, 11.3, &base_dmg);
+  weapon.LoadAmmo(ammo);
   std::cout << "Dps: " << weapon.Dps(&res) << '\n';
 }
 
 int main() {
   
   // StackingPenaltyCalculationTest();
-  // DpsCalculationTest();
-
-  float bonus = 0.25;
-  float c = 100;
-  c = c * (1 + bonus);
-  std::cout << c << std::endl;
-  c = c / (1 + bonus);
-  std::cout << c << std::endl;
-  return 0;
+  DpsCalculationTest();
 }
