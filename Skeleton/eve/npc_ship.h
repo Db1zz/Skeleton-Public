@@ -8,13 +8,31 @@ namespace eve {
 
 using std::shared_ptr;
 
-class NpcShip : public Ship {
+class AIBehavior {
   public:
-    NpcShip(shared_ptr<ShipEngine> engine)
-        : Ship(engine) {}
+    AIBehavior(float orbit_range)
+        : orbit_range_(orbit_range) {}
+
+    inline float OrbitRange() const {
+      return orbit_range_;
+    }
 
   private:
-  
+    float orbit_range_;
+};
+
+class NpcShip : public Ship {
+  public:
+    NpcShip(shared_ptr<ShipEngine> engine,
+            shared_ptr<ShipCapacitor> capacitor, 
+            shared_ptr<ShipTargeting> targeting,
+            shared_ptr<ShipDefense> defense,
+            shared_ptr<AIBehavior> ai_behavior)
+        : Ship(engine, capacitor, targeting, defense),
+          ai_behavior_(ai_behavior) {}
+
+  private:
+    shared_ptr<AIBehavior> ai_behavior_;
 };
 
 } // namespace eve
