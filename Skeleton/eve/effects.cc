@@ -53,8 +53,15 @@ void ShipEffectsMap::AddEffect(shared_ptr<ShipEffect> effect) {
   auto manager_it = effects_map_.find(effect.get()->GetType());
 
   if (manager_it == effects_map_.end()) {
-    shared_ptr<StasisWebifierManager> s =
-        make_unique<StasisWebifierManager>(ship_);
+    shared_ptr<EffectManager> s;
+
+    // Fuck any guy who say that switch
+    // statements are bad.
+    switch (effect.get()->GetType()) {
+      case ShipEffect::StasisWebifier: {
+        s = make_unique<StasisWebifierManager>(ship_);
+      }
+    }
 
     s.get()->ApplyEffect(effect);
     effects_map_.insert({effect.get()->GetType(), s});
