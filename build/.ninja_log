@@ -1,0 +1,9 @@
+# ninja log v5
+6	3945	1707332760388591448	CMakeFiles/Skeleton.dir/Skeleton/db/db_loader.cc.o	344e2fbdef64ecaf
+21	2243	1707394297491366210	CMakeFiles/Skeleton.dir/Skeleton/eve/effects.cc.o	7ac20dd27321a65e
+6	1922	1707394587116106848	CMakeFiles/Skeleton.dir/Skeleton/eve/ship.cc.o	e34320bd6901ec39
+6	3368	1707332759798901933	CMakeFiles/Skeleton.dir/Skeleton/eve/hp_resistances.cc.o	bffb11ff0dc58490
+4	24	0	clean	ca91ab860e8b0f7a
+8	1711	1707395842618283375	CMakeFiles/Skeleton.dir/examples/main_example.cc.o	25197de80f8a94e6
+1712	1805	1707395842717423704	Skeleton	2fa0f2579f5c1f8c
+5	2951	1707332759373430785	CMakeFiles/Skeleton.dir/Skeleton/eve/eve_math.cc.o	d90d78b4ea57a743

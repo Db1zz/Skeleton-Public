@@ -72,7 +72,7 @@ class TurretAmmo : public Ammo {
 class Weapon {
   public:
     Weapon(float rof, float reload_time, float weapon_amount, 
-           DamageProfile dmg_profle);
+           const DamageProfile* dmg_profle);
 
     virtual ~Weapon() = default;
 
@@ -132,9 +132,8 @@ class Weapon {
 
 class MissileWeapon : public Weapon {
   public:
-    MissileWeapon(float rof, float reload_time, float weapon_amount) 
-        : Weapon(rof, reload_time, weapon_amount, DamageProfile()),
-          ammo_(nullptr) {}
+    MissileWeapon(float rof, float reload_time, float weapon_amount,
+                  const DamageProfile* dmg_profile);
   
     float Dps(const ResistanceProfile* res) const override;
 
@@ -147,18 +146,17 @@ class MissileWeapon : public Weapon {
 
   private:
     shared_ptr<MissileAmmo> ammo_;
-    float range_;
 };
 
 class TurretWeapon : public Weapon {
   public:
     TurretWeapon(float rof, float reload_time, float weapon_amount,
-                 float dmg_multiplier, float base_optimal,
-                 float base_falloff, float base_tracking);
+                 float dmg_multiplier, float base_optimal, float base_falloff,
+                 float base_tracking, const DamageProfile* dmg_profile);
 
     float Dps(const ResistanceProfile* res) const override;
 
-    void LoadAmmo(const shared_ptr<Ammo> ammo);
+    void LoadAmmo(const shared_ptr<Ammo> ammo) override;
 
     void UnloadAmmo() override;
 
@@ -171,8 +169,6 @@ class TurretWeapon : public Weapon {
     float base_optimal_;
     float base_falloff_;
     float base_tracking_;
-    float range_;
-    float application_;
 };
 
 } // namespace eve

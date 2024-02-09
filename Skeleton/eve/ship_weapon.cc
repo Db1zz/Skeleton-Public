@@ -32,23 +32,23 @@ TurretAmmo::TurretAmmo(float falloff_modifier, float optimal_modifier,
 // *************************************************************************
 
 Weapon::Weapon(float rof, float reload_time, float weapon_amount, 
-               DamageProfile dmg_profle)
+               const DamageProfile* dmg_profile)
     : rof_(rof),
       reload_time_(reload_time), 
       weapon_amount_(weapon_amount),
-      base_dmg_profile_(dmg_profle),
-      curr_dmg_profile_(dmg_profle) {}
+      base_dmg_profile_(*dmg_profile),
+      curr_dmg_profile_(*dmg_profile) {}
 
 // End of Weapon Base Implementation
-
 
 // *************************************************************************
 // -- Missile Weapons Implementation
 // *************************************************************************
 
 MissileWeapon::MissileWeapon(float rof, float reload_time, 
-                                 float weapon_amount)
-    : Weapon(rof, reload_time, weapon_amount, DamageProfile()),
+                             float weapon_amount,
+                             const DamageProfile* dmg_profile)
+    : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       ammo_(nullptr) {}
 
 float MissileWeapon::Dps(const ResistanceProfile* res) const {
@@ -57,7 +57,8 @@ float MissileWeapon::Dps(const ResistanceProfile* res) const {
                DecreaseByPercent(dmg_profile->Thermal(), res->Thermal()) +
                DecreaseByPercent(dmg_profile->Kinetic(), res->Kinetic()) + 
                DecreaseByPercent(dmg_profile->Explosive(), res->Explosive())) *
-               weapon_amount_) / rof_;         
+               weapon_amount_) / rof_;
+  return dps;
 }
 
 void MissileWeapon::LoadAmmo(const shared_ptr<Ammo> ammo) {
@@ -91,8 +92,9 @@ void MissileWeapon::ApplyAmmoBonuses() {
 
 TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount,
                            float dmg_multiplier, float base_optimal,
-                           float base_falloff, float base_tracking)
-    : Weapon(rof, reload_time, weapon_amount, DamageProfile()),
+                           float base_falloff, float base_tracking,
+                           const DamageProfile* dmg_profile)
+    : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       dmg_multiplier_(dmg_multiplier),
       base_optimal_(base_optimal),
       base_falloff_(base_falloff),
@@ -106,12 +108,15 @@ float TurretWeapon::Dps(const ResistanceProfile* res) const {
                DecreaseByPercent(dmg_profile->Kinetic(), res->Kinetic()) + 
                DecreaseByPercent(dmg_profile->Explosive(), res->Explosive())) *
                weapon_amount_) / rof_) * dmg_multiplier_;
+  return dps;
 }
 
 void TurretWeapon::LoadAmmo(const shared_ptr<Ammo> ammo) {
+  // Try to cast Ammo -> TurretAmmo
   shared_ptr<TurretAmmo> turret_ammo = 
     std::dynamic_pointer_cast<TurretAmmo>(ammo);
   
+  // Check if cast succseed
   assert(turret_ammo);
 
   ammo_ = turret_ammo;
