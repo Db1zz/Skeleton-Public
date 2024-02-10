@@ -15,6 +15,8 @@ set(SOURCE
     Skeleton/eve/ship_weapon.cc
     Skeleton/eve/hp_resistances.h
     Skeleton/eve/hp_resistances.cc
+    Skeleton/eve/type_converter.h
+    Skeleton/eve/type_converter.cc
     Skeleton/db/db_loader.h
     Skeleton/db/db_loader.cc
     )
