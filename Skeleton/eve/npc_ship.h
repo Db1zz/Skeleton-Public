@@ -27,9 +27,14 @@ class NpcShip : public Ship {
             shared_ptr<ShipCapacitor> capacitor, 
             shared_ptr<ShipTargeting> targeting,
             shared_ptr<ShipDefense> defense,
+            shared_ptr<ShipEwarVector<>> ewar,
             shared_ptr<AIBehavior> ai_behavior)
-        : Ship(engine, capacitor, targeting, defense),
+        : Ship(engine, capacitor, targeting, defense, ewar),
           ai_behavior_(ai_behavior) {}
+
+    inline virtual AIBehavior* GetAIBehavior() const {
+      return ai_behavior_.get();
+    }
 
   private:
     shared_ptr<AIBehavior> ai_behavior_;
