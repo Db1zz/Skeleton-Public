@@ -43,10 +43,10 @@ void StasisWebifierManager::ApplyEffect(shared_ptr<ShipEffect> effect) {
 }
 
 void StasisWebifierManager::CalculateApplyEffect() {
-  float max_ship_velocity = ship_->Engine().get()->MaxVelocity();
+  float max_ship_velocity = ship_->Engine()->MaxVelocity();
   float new_velocity = ApplyStackingPenalty(max_ship_velocity,
                                             effect_str_vector_);
-  ship_->Engine().get()->SetVelocity(new_velocity);
+  ship_->Engine()->SetVelocity(new_velocity);
 }
 
 void ShipEffectsMap::AddEffect(shared_ptr<ShipEffect> effect) {
