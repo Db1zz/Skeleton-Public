@@ -13,19 +13,21 @@ using std::vector;
 using std::string;
 using std::shared_ptr;
 
-ShipEffect::Type StrToEwar(const string &type);
+ShipEffect::Type StrToType(const string &type);
 
-ShipEffect::Type StrToEwar(vector<string> &csv_lines, int index);
+ShipEffect::Type StrToEwar(const vector<string> &csv_lines, int index);
 
 // HullType StrToHull(const string &type);
 
 float StrToFloat(const string &type);
 
-float StrToFloat(vector<string> &csv_lines, int index);
+float StrToFloat(const vector<string> &csv_lines, int index);
 
-DamageProfile StrToDmgProfile(vector<string> &csv_line, int start);
+DamageProfile TurretStrToDmgProfile(const vector<string> &csv_line, int start);
 
-ResistanceProfile StrToResProfile(vector<string> &csv_line, int start);
+DamageProfile MissileStrToDmgProfile(const string& str);
+
+ResistanceProfile StrToResProfile(const vector<string> &csv_line, int start);
 
 }  // namespace converter
 }  // namespace eve

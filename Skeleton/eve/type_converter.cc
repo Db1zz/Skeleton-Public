@@ -25,7 +25,7 @@ static const std::unordered_map<string, ShipEffect::Type> kStrEffectMap = {
 //   {"frigate", HullType::Frigate}
 // };
 
-ShipEffect::Type StrToEwar(const string &type) {
+ShipEffect::Type StrToType(const string &type) {
   auto type_it = kStrEffectMap.find(type);
   if (type_it == kStrEffectMap.end()) {
     return ShipEffect::Type::None;
@@ -33,8 +33,8 @@ ShipEffect::Type StrToEwar(const string &type) {
   return type_it->second;
 }
 
-ShipEffect::Type StrToEwar(vector<string> &csv_lines, int index) {
-  return StrToEwar(csv_lines[index]);
+ShipEffect::Type StrToEwar(const vector<string> &csv_lines, int index) {
+  return StrToType(csv_lines[index]);
 }
 
 // TODO: implement HullType class|enum 
@@ -51,11 +51,11 @@ float StrToFloat(const string &type) {
   return std::stof(type);
 }
 
-float StrToFloat(vector<string> &csv_lines, int index) {
+float StrToFloat(const vector<string> &csv_lines, int index) {
   return std::stof(csv_lines[index]);
 }
 
-DamageProfile StrToDmgProfile(vector<string> &csv_line, int start) {
+DamageProfile TurretStrToDmgProfile(const vector<string> &csv_line, int start) {
   DamageProfile res = {
     StrToFloat(csv_line, start),
     StrToFloat(csv_line, start + 1),
@@ -65,7 +65,39 @@ DamageProfile StrToDmgProfile(vector<string> &csv_line, int start) {
   return res;
 }
 
-ResistanceProfile StrToResProfile(vector<string> &csv_line, int start_index) {
+DamageProfile MissileStrToDmgProfile(const string& str) {
+  DamageProfile result;
+  const static vector<string> types{"EM", "THE", "KIN", "EXP"};
+
+  for (const auto& type : types) {
+    size_t found = str.find(type);
+    if (found != string::npos) {
+      string damage;
+      for (int i = found - 1; i >= 0; i--) {
+        if (damage.size() > 0 && str[i] == ' ' || 
+                                 str[i] == '|') {
+          break;
+        }
+        if (str[i] == ' ') continue;
+        
+        damage.insert(damage.begin() + 0, str[i]);
+      }
+      if (type == types[0]) {
+        result.SetEm(std::stof(damage));
+      } else if (type == types[1]) {
+        result.SetThermal(std::stof(damage));
+      } else if (type == types[2]) {
+        result.SetKinetic(std::stof(damage));
+      } else if (type == types[3]) {
+        result.SetExplosive(std::stof(damage));
+      }
+    }
+  }
+  return result;
+}
+
+ResistanceProfile StrToResProfile(const vector<string> &csv_line,
+                                  int start_index) {
   ResistanceProfile res = {
     StrToFloat(csv_line, start_index),
     StrToFloat(csv_line, start_index + 1),
