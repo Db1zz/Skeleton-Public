@@ -1,6 +1,7 @@
 #include "db_loader.h"
 #include <vector>
 #include <iostream>
+#include <string>
 
 namespace db {
 

@@ -21,6 +21,8 @@ class Database {
 
 class CsvDatabase : public Database {
   public:
+    CsvDatabase() = default;
+
     CsvDatabase(const string_view db_path);
 
     bool Connect() override;
@@ -41,6 +43,7 @@ class CsvDatabase : public Database {
 
 class CsvDatabaseParser : public CsvDatabase {
   public:
+    CsvDatabaseParser() = default;
     CsvDatabaseParser(const string_view database_path);
 
     vector<string> SplitLine(const string *line);  
