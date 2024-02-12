@@ -8,11 +8,11 @@ namespace eve {
 
 using std::shared_ptr;
 
-class PlayerShip : public Ship {
-  public:
-    PlayerShip(shared_ptr<ShipEngine> engine)
-        : Ship(engine) {}
-};
+// class PlayerShip : public Ship {
+//   public:
+//     PlayerShip(shared_ptr<ShipEngine> engine)
+//         : Ship(engine) {}
+// };
 
 } // namespace eve
 
