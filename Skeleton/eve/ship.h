@@ -3,6 +3,7 @@
 
 #include "hp_resistances.h"
 #include "effects.h"
+#include "ship_weapon.h"
 
 #include <memory>
 #include <iostream>
@@ -11,6 +12,7 @@
 
 namespace eve {
 
+using std::unique_ptr;
 using std::shared_ptr;
 using std::vector;
 
@@ -23,23 +25,19 @@ class ShipEffectsMap;
 class ShipEwarModule {
   public:
     ShipEwarModule(float optimal, float falloff, float rof, 
-                   shared_ptr<ShipEffect> effect)
-        : optimal_(optimal),
-          falloff_(falloff),
-          rof_(rof),
-          effect_(effect) {}
-  
-  inline shared_ptr<ShipEffect> Effect() const {
-    return effect_;
-  }
+                   const shared_ptr<ShipEffect>& effect);
+                     
+    inline shared_ptr<ShipEffect>& Effect() {
+      return effect_;
+    }
 
-  inline float Optimal() const {
-    return optimal_;
-  }
+    inline float Optimal() const {
+      return optimal_;
+    }
 
-  inline float Falloff() const {
-    return falloff_;
-  }
+    inline float Falloff() const {
+      return falloff_;
+    }
 
   private:
     shared_ptr<ShipEffect> effect_;
@@ -48,47 +46,23 @@ class ShipEwarModule {
     float rof_;
 };
 
-template <typename... Args>
 class ShipEwarVector {
   public:
-    ShipEwarVector() = default;
+    ShipEwarVector(const ShipEwarVector&) = delete;
 
-    ShipEwarVector(Args&... args) 
-        : ewar_modules_{args...} {}
-  
-    ShipEwarModule& operator[](int index) {
-      return ewar_modules_[index];
+    ShipEwarVector &operator=(const ShipEwarVector&) = delete;
+
+    ShipEwarVector(vector<shared_ptr<ShipEwarModule>>& ewar_module_list);
+
+    ShipEwarModule* operator[](int index) {
+      return ewar_modules_[index].get();
     }
 
-    vector<shared_ptr<ShipEwarModule>> FindEwarByType(ShipEffect::Type&& type) {
-      vector<shared_ptr<ShipEwarModule>> result;
-      
-      for (const auto& module : ewar_modules_) {
-        if (module.get()->Effect().get()->GetType() == type) {
-          result.push_back(module);
-        }
-      }
-      return result;
-    }
+    vector<ShipEwarModule*> FindEwarByType(ShipEffect::Type type);
 
-    void AddEwarModule(shared_ptr<ShipEwarModule> ewar_module) {
-      ewar_modules_.push_back(ewar_module);
-    }
+    void AddEwarModule(shared_ptr<ShipEwarModule>& ewar_module);
 
-    bool RemoveEwarModule(shared_ptr<ShipEwarModule> ewar_module) {
-      const ShipEffect* module_effect = ewar_module.get()->Effect().get();
-
-      for (int i = 0; i < Size(); i++) {
-        const ShipEffect* found_effect = ewar_modules_[i].get()->Effect().get();
-        if (found_effect->GetType() == module_effect->GetType() &&
-            found_effect->Strength() == module_effect->Strength()) 
-        {
-          ewar_modules_.erase(begin() + i);
-          return true;
-        }
-      }
-      return false;
-    }
+    bool RemoveEwarModule(ShipEwarModule* ewar_module);
 
     inline int Size() {
       return ewar_modules_.size();
@@ -244,18 +218,19 @@ class ShipEngine {
 
 class Ship {
   public:
-    Ship(shared_ptr<ShipEngine> engine,
-         shared_ptr<ShipCapacitor> capacitor, 
-         shared_ptr<ShipTargeting> targeting,
-         shared_ptr<ShipDefense> defense,
-         shared_ptr<ShipEwarVector<>> ewar);
+    Ship(unique_ptr<ShipEngine>& engine,
+         unique_ptr<ShipCapacitor>& capacitor,
+         unique_ptr<ShipTargeting>& targeting,
+         unique_ptr<ShipDefense>& defense,
+         vector<shared_ptr<ShipEwarModule>>& ewar_module_list,
+         vector<shared_ptr<Weapon>>& weapon_list);
 
     virtual ~Ship() = default;
 
-    virtual void ApplyEffect(shared_ptr<ShipEffect> effect);
+    virtual void ApplyEffect(const shared_ptr<ShipEffect>& effect);
 
-    inline virtual ShipEffectsMap* EffectMap() const {
-      return effect_map_.get();
+    inline virtual ShipEffectsMap* EffectMap() {
+      return &effect_map_;
     }
 
     inline virtual ShipEngine* Engine() const {
@@ -274,17 +249,18 @@ class Ship {
       return defense_.get();
     }
 
-    inline virtual ShipEwarVector<>* Ewar() const {
-      return ewar_.get();
+    inline virtual ShipEwarVector* Ewar() {
+      return &ewar_;
     }
 
   private:
-    shared_ptr<ShipEngine> engine_;
-    shared_ptr<ShipCapacitor> capacitor_;
-    shared_ptr<ShipTargeting> targeting_;
-    shared_ptr<ShipDefense> defense_;
-    shared_ptr<ShipEffectsMap> effect_map_;
-    shared_ptr<ShipEwarVector<>> ewar_;
+    unique_ptr<ShipEngine> engine_;
+    unique_ptr<ShipCapacitor> capacitor_;
+    unique_ptr<ShipTargeting> targeting_;
+    unique_ptr<ShipDefense> defense_;
+    ShipEffectsMap effect_map_;
+    ShipEwarVector ewar_;
+    vector<shared_ptr<Weapon>> weapons_;
 };
 
 } // namespace eve
