@@ -2,6 +2,7 @@
 #include "hp_resistances.h"
 #include "eve_math.h"
 
+#include <memory>
 #include <assert.h>
 
 namespace eve {
@@ -61,8 +62,8 @@ float MissileWeapon::Dps(const ResistanceProfile* res) const {
   return dps;
 }
 
-void MissileWeapon::LoadAmmo(const shared_ptr<Ammo> ammo) {
-  shared_ptr<MissileAmmo> missile_ammo =
+void MissileWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
+  shared_ptr<MissileAmmo> missile_ammo = 
     std::dynamic_pointer_cast<MissileAmmo>(ammo);
 
   assert(missile_ammo);
@@ -111,8 +112,8 @@ float TurretWeapon::Dps(const ResistanceProfile* res) const {
   return dps;
 }
 
-void TurretWeapon::LoadAmmo(const shared_ptr<Ammo> ammo) {
-  // Try to cast Ammo -> TurretAmmo
+void TurretWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
+  // Try to dynamicly cast Ammo -> TurretAmmo
   shared_ptr<TurretAmmo> turret_ammo = 
     std::dynamic_pointer_cast<TurretAmmo>(ammo);
   

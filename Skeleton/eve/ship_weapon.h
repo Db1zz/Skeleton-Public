@@ -66,7 +66,14 @@ class TurretAmmo : public Ammo {
   private:
     float falloff_modifier_;
     float optimal_modifier_;
-    float tracking_modifier_; // NOT USED!
+
+     // TODO: add function that will calculate
+     // application to target. 
+     // Note: this is so hard to implement without
+     // reading the game memory, so let's think about
+     // it when we will be able to find the stable path for 
+     // eve classes and data structures(I HATE PYTHON).
+    float tracking_modifier_;
 };
 
 class Weapon {
@@ -78,7 +85,7 @@ class Weapon {
 
     // virtual WeaponType Type() const = 0; TODO
 
-    virtual void LoadAmmo(const shared_ptr<Ammo> ammo) = 0;
+    virtual void LoadAmmo(const shared_ptr<Ammo>& ammo) = 0;
 
     virtual void UnloadAmmo() = 0;
 
@@ -137,7 +144,7 @@ class MissileWeapon : public Weapon {
   
     float Dps(const ResistanceProfile* res) const override;
 
-    void LoadAmmo(const shared_ptr<Ammo> ammo) override;
+    void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
 
     void UnloadAmmo() override;
     
@@ -156,7 +163,7 @@ class TurretWeapon : public Weapon {
 
     float Dps(const ResistanceProfile* res) const override;
 
-    void LoadAmmo(const shared_ptr<Ammo> ammo) override;
+    void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
 
     void UnloadAmmo() override;
 
