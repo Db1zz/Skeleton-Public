@@ -58,9 +58,9 @@ class ShipEffectVector {
   public:
     ShipEffectVector() {}
 
-    bool InsertEffect(shared_ptr<ShipEffect> effect);
+    bool InsertEffect(const shared_ptr<ShipEffect>& effect);
 
-    bool EraseEffect(shared_ptr<ShipEffect> effect);
+    bool EraseEffect(const ShipEffect* effect);
 
     inline ShipEffect* GetStrongestEffect() {
       if (IsEmpty()) {
@@ -104,9 +104,9 @@ class EffectManager : public ShipEffectVector {
 
     virtual ShipEffect::Type Type() const = 0;
 
-    virtual void ApplyEffect(shared_ptr<ShipEffect> effect) = 0;
+    virtual void ApplyEffect(const shared_ptr<ShipEffect>& effect) = 0;
 
-    virtual bool RemoveEffect(shared_ptr<ShipEffect> effect);
+    virtual bool RemoveEffect(const ShipEffect* effect);
 
     virtual void CalculateApplyEffect() = 0;
 };
@@ -120,7 +120,7 @@ class StasisWebifierManager : public EffectManager {
       return type_;
     }
 
-    void ApplyEffect(shared_ptr<ShipEffect> effect) override;
+    void ApplyEffect(const shared_ptr<ShipEffect>& effect) override;
 
     void CalculateApplyEffect() override;
 
@@ -134,11 +134,11 @@ class ShipEffectsMap {
     ShipEffectsMap(Ship* ship)
         : ship_(ship) {}
 
-    void AddEffect(shared_ptr<ShipEffect> effect);
+    void AddEffect(const shared_ptr<ShipEffect>& effect);
 
-    bool RemoveEffect(shared_ptr<ShipEffect> effect);
+    bool RemoveEffect(const ShipEffect* effect);
 
-    shared_ptr<EffectManager> GetEffectManager(shared_ptr<ShipEffect> effect);
+    shared_ptr<EffectManager> GetEffectManager(const ShipEffect* effect);
 
     inline auto begin() const {
       return effects_map_.begin();

@@ -6,22 +6,21 @@ namespace eve {
 
 using std::shared_ptr;
 
-bool ShipEffectVector::InsertEffect(shared_ptr<ShipEffect> effect) {
+bool ShipEffectVector::InsertEffect(const shared_ptr<ShipEffect>& effect) {
   int i = 0;
   for (; i < Size(); i++) {
-    if (effect->Strength() >= effect_array_[i].get()->Strength()) {
+    if (effect->Strength() >= effect_array_[i]->Strength()) {
       break;
     }
   }
   effect_array_.insert(begin() + i, effect);
-  effect_str_vector_.insert(effect_str_vector_.begin() + i,
-                            effect.get()->Strength());
+  effect_str_vector_.insert(effect_str_vector_.begin() + i, effect->Strength());
   return true;
 }
 
-bool ShipEffectVector::EraseEffect(shared_ptr<ShipEffect> effect) {
+bool ShipEffectVector::EraseEffect(const ShipEffect* effect) {
   for (int i = 0; i < Size(); i++) {
-    if (effect_array_[i].get()->Source() == effect.get()->Source()) {
+    if (effect_array_[i]->Source() == effect->Source()) {
       effect_array_.erase(begin() + i);
       return true;
     }
@@ -29,7 +28,7 @@ bool ShipEffectVector::EraseEffect(shared_ptr<ShipEffect> effect) {
   return false;
 }
 
-bool EffectManager::RemoveEffect(shared_ptr<ShipEffect> effect) {
+bool EffectManager::RemoveEffect(const ShipEffect* effect) {
   if (EraseEffect(effect)) {
     CalculateApplyEffect();
     return true;
@@ -37,7 +36,7 @@ bool EffectManager::RemoveEffect(shared_ptr<ShipEffect> effect) {
   return false;
 }
 
-void StasisWebifierManager::ApplyEffect(shared_ptr<ShipEffect> effect) {
+void StasisWebifierManager::ApplyEffect(const shared_ptr<ShipEffect>& effect) {
   InsertEffect(effect);
   CalculateApplyEffect();
 }
@@ -49,39 +48,37 @@ void StasisWebifierManager::CalculateApplyEffect() {
   ship_->Engine()->SetVelocity(new_velocity);
 }
 
-void ShipEffectsMap::AddEffect(shared_ptr<ShipEffect> effect) {
-  auto manager_it = effects_map_.find(effect.get()->GetType());
+void ShipEffectsMap::AddEffect(const shared_ptr<ShipEffect>& effect) {
+  auto manager_it = effects_map_.find(effect->GetType());
 
   if (manager_it == effects_map_.end()) {
     shared_ptr<EffectManager> s;
 
-    // Fuck any guy who say that switch
-    // statements are bad.
-    switch (effect.get()->GetType()) {
+    switch (effect->GetType()) {
       case ShipEffect::StasisWebifier: {
         s = make_unique<StasisWebifierManager>(ship_);
       }
     }
 
-    s.get()->ApplyEffect(effect);
-    effects_map_.insert({effect.get()->GetType(), s});
+    s->ApplyEffect(effect);
+    effects_map_.insert({effect->GetType(), s});
 
   } else {
-    manager_it->second.get()->ApplyEffect(effect);
+    manager_it->second->ApplyEffect(effect);
   }
 }
 
-bool ShipEffectsMap::RemoveEffect(shared_ptr<ShipEffect> effect) {
+bool ShipEffectsMap::RemoveEffect(const ShipEffect* effect) {
   auto found_it = GetEffectManager(effect);
   if (!found_it)
     return false;
 
-  return found_it.get()->EraseEffect(effect);
+  return found_it->EraseEffect(effect);
 }
 
 shared_ptr<EffectManager> ShipEffectsMap::GetEffectManager(
-    shared_ptr<ShipEffect> effect) {
-  auto effect_it = effects_map_.find(effect.get()->GetType());
+    const ShipEffect* effect) {
+  auto effect_it = effects_map_.find(effect->GetType());
   if (effect_it == effects_map_.end()) {
     return nullptr;
   }
