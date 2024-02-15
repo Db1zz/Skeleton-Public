@@ -1,88 +1,171 @@
 #include "effects.h"
 #include "ship.h"
-#include "eve_math.h"
+
+#include <utility>
 
 namespace eve {
 
-using std::shared_ptr;
+using std::make_unique;
 
-bool ShipEffectVector::InsertEffect(const shared_ptr<ShipEffect>& effect) {
-  int i = 0;
-  for (; i < Size(); i++) {
-    if (effect->Strength() >= effect_array_[i]->Strength()) {
+Effect::Effect(EffectSource source, EffectType type, float base_strength)
+    : source_(source), 
+      base_strength_(base_strength),
+      type_(type) {}
+
+
+void EwarCapacitorRegenDecreaseEffect::ApplyToTarget(
+    Ship* target, float strength) 
+{
+  target->Capacitor()->SetRechargetRate((
+      target->Capacitor()->RechargeRate() - strength));
+}
+
+void EwarCapacitorRegenDecreaseEffect::RemoveFromTarget(
+    Ship* target, float strength) 
+{
+  target->Capacitor()->SetRechargetRate((
+      target->Capacitor()->RechargeRate() + strength));
+}
+
+
+void EwarVelocityDecreaseEffect::ApplyToTarget(Ship* target, float strength) {
+  target->Engine()->SetVelocity(target->Engine()->Velocity() * strength);
+}
+
+void EwarVelocityDecreaseEffect::RemoveFromTarget(Ship* target, float strength){
+  target->Engine()->SetVelocity(target->Engine()->Velocity() / strength);
+}
+
+void EwarLockRangeDecreaseEffect::ApplyToTarget(Ship* target, float strength) {
+  target->Targeting()->SetRange((target->Targeting()->Range() * strength));
+}
+
+void EwarLockRangeDecreaseEffect::RemoveFromTarget(
+    Ship* target, float strength) 
+{
+  target->Targeting()->SetRange((target->Targeting()->Range() / strength));
+}
+
+void EwarArmorRestorationEffect::ApplyToTarget(Ship* target, float strength) {
+  // Accepts only HP/s, DON'T USE raw values.
+  target->Defense()->SetHPs(target->Defense()->HPs() + strength);
+}
+
+void EwarArmorRestorationEffect::RemoveFromTarget(Ship* target, float strength){
+  // Accepts only HP/s, DON'T USE raw values.
+  target->Defense()->SetHPs(target->Defense()->HPs() - strength);
+}
+
+EffectManager::EffectManager(EffectType effect_type, Ship* target)
+    : effect_type_(effect_type), target_(target) {}
+
+void EffectManager::ApplyEffect(const shared_ptr<Effect>& effect) {
+  int index = 0;
+  for (; index < effects_.size(); index++) {
+    if (effect->GetStrength() >= effects_[index].second->GetStrength()) {
       break;
     }
   }
-  effect_array_.insert(begin() + i, effect);
-  effect_str_vector_.insert(effect_str_vector_.begin() + i, effect->Strength());
-  return true;
+  UnapplyEffects(effects_.size() - 1, index);
+  effects_.insert(effects_.begin() + index, {0, effect});
+  RecalcEffectsAndApply(index, effects_.size());
 }
 
-bool ShipEffectVector::EraseEffect(const ShipEffect* effect) {
-  for (int i = 0; i < Size(); i++) {
-    if (effect_array_[i]->Source() == effect->Source()) {
-      effect_array_.erase(begin() + i);
-      return true;
+bool EffectManager::RemoveEffect(const Effect* to_remove) {
+  int i = 0;
+  size_t size = effects_.size();
+  for (; i < size; i++) {
+    shared_ptr<Effect>& found = effects_[i].second;
+    if (found->GetType() == to_remove->GetType() &&
+        found->GetSource() == to_remove->GetSource() &&
+        found->GetStrength() == to_remove->GetStrength()) {
+      
+      UnapplyEffects(size - 1, i);
+
+      effects_.erase(effects_.begin() + i);
+      break;
     }
   }
+  RecalcEffectsAndApply(i, effects_.size());
   return false;
 }
 
-bool EffectManager::RemoveEffect(const ShipEffect* effect) {
-  if (EraseEffect(effect)) {
-    CalculateApplyEffect();
-    return true;
-  }
-  return false;
-}
+void EffectManager::RecalcEffectsAndApply(int start, int end) {
+  if (effects_.size() == 0)
+    return;
 
-void StasisWebifierManager::ApplyEffect(const shared_ptr<ShipEffect>& effect) {
-  InsertEffect(effect);
-  CalculateApplyEffect();
-}
+  assert(start <= end);
 
-void StasisWebifierManager::CalculateApplyEffect() {
-  float max_ship_velocity = ship_->Engine()->MaxVelocity();
-  float new_velocity = ApplyStackingPenalty(max_ship_velocity,
-                                            effect_str_vector_);
-  ship_->Engine()->SetVelocity(new_velocity);
-}
+  for (; start < end; start++) {
+    float str = 0;
 
-void ShipEffectsMap::AddEffect(const shared_ptr<ShipEffect>& effect) {
-  auto manager_it = effects_map_.find(effect->GetType());
-
-  if (manager_it == effects_map_.end()) {
-    shared_ptr<EffectManager> s;
-
-    switch (effect->GetType()) {
-      case ShipEffect::StasisWebifier: {
-        s = make_unique<StasisWebifierManager>(ship_);
-      }
+    if (effects_[start].second->IsPercentageEffect()) {
+      str = ApplyStackingPenalty(effects_[start].second->GetStrength(), start);
+    } else {
+      str = effects_[start].second->GetStrength();
     }
 
-    s->ApplyEffect(effect);
-    effects_map_.insert({effect->GetType(), s});
+    effects_[start].first = str;
+    effects_[start].second->ApplyToTarget(target_, str);
+  }
+}
 
+void EffectManager::UnapplyEffects(int start, int end) {
+  if (effects_.size() == 0)
+    return;
+
+  assert(start >= end);
+
+  for (; start >= end; start--) {
+    effects_[start].second->RemoveFromTarget(target_, 
+                                             effects_[start].first);
+  }
+}
+
+void EffectsContainer::AddEffect(const shared_ptr<Effect>& effect) {
+  // Try to find manager in managers_map_
+  auto manager_it = managers_map_.find(effect->GetType());
+
+  // Check if effect manager is not exist in the managers_map_.
+  if (manager_it == managers_map_.end()) {
+    // Dynamicly allocate new manager
+    unique_ptr<EffectManager> manager = 
+        std::make_unique<EffectManager>(effect->GetType(), target_);
+
+    // Apply effect to target_
+    manager->ApplyEffect(effect);
+
+    // Emplace manager in managers_map_
+    managers_map_.emplace(effect->GetType(), std::move(manager));
   } else {
+    // Simply use ApplyEffect if manager already exis in managers_map_ 
     manager_it->second->ApplyEffect(effect);
   }
 }
 
-bool ShipEffectsMap::RemoveEffect(const ShipEffect* effect) {
-  auto found_it = GetEffectManager(effect);
-  if (!found_it)
+bool EffectsContainer::RemoveEffect(const Effect* effect) {
+  // Get pointer to the manager
+  EffectManager* manager = GetEffectManager(effect);
+
+  // Check if GetEffectManager() returned nullptr
+  if (!manager)
     return false;
 
-  return found_it->EraseEffect(effect);
+  // Return result of RemoveEffect()
+  return manager->RemoveEffect(effect);
 }
 
-shared_ptr<EffectManager> ShipEffectsMap::GetEffectManager(
-    const ShipEffect* effect) {
-  auto effect_it = effects_map_.find(effect->GetType());
-  if (effect_it == effects_map_.end()) {
+EffectManager* EffectsContainer::GetEffectManager(const Effect* effect) {
+  // Obtain map iterator for manager
+  auto effect_it = managers_map_.find(effect->GetType());
+
+  // Check if find() returned unordered_map::end()
+  if (effect_it == managers_map_.end()) {
     return nullptr;
   }
-  return effect_it->second;
+
+  // Return pointer to the EffectManager
+  return effect_it->second.get();
 }
 
 } // namespace eve
