@@ -14,8 +14,12 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+include(GoogleTest)
+
 set(SOURCE
     examples/main_example.cc
+    Skeleton/eve/ewar_modules.h
+    Skeleton/eve/ewar_modules.cc
     Skeleton/eve/eve_math.h
     Skeleton/eve/eve_math.cc
     Skeleton/eve/effects.h
@@ -38,6 +42,12 @@ set(SOURCE
     Skeleton/abyss_bot/npc_ship.h
     Skeleton/abyss_bot/npc_ship.cc
     Skeleton/abyss_bot/npc_builder.h
+    tests/effect_tests.cc
+    tests/math_tests.cc
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE})
+target_link_libraries(${PROJECT_NAME}
+  gtest
+  gtest_main
+)
