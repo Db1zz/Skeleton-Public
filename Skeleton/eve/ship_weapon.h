@@ -3,9 +3,14 @@
 
 #include "hp_resistances.h"
 
+#include <vector>
+#include <unordered_map>
+
 namespace eve {
 
 using std::shared_ptr;
+using std::vector;
+using std::unordered_map;
 
 class MissileLauncher;
 class Weapon;
@@ -78,6 +83,13 @@ class TurretAmmo : public Ammo {
 
 class Weapon {
   public:
+    enum Type {
+      TurretWeapon,
+      MissileWeapon,
+
+      Total
+    };
+
     Weapon(float rof, float reload_time, float weapon_amount, 
            const DamageProfile* dmg_profle);
 
@@ -90,6 +102,8 @@ class Weapon {
     virtual void UnloadAmmo() = 0;
 
     virtual float Dps(const ResistanceProfile* res) const = 0;
+
+    virtual Weapon::Type GetType() const = 0;
 
     inline float WeaponAmount() const {
       return weapon_amount_;
@@ -147,6 +161,10 @@ class MissileWeapon : public Weapon {
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
 
     void UnloadAmmo() override;
+
+    inline Weapon::Type GetType() const override {
+      return Type::MissileWeapon;
+    }
     
   protected:
     void ApplyAmmoBonuses();
@@ -160,6 +178,22 @@ class TurretWeapon : public Weapon {
     TurretWeapon(float rof, float reload_time, float weapon_amount,
                  float dmg_multiplier, float base_optimal, float base_falloff,
                  float base_tracking, const DamageProfile* dmg_profile);
+
+    inline float BaseTracking() const {
+      return base_tracking_;  
+    }
+
+    inline float BaseOptimal() const {
+      return base_optimal_;
+    }
+
+    inline float BaseFalloff() const {
+      return base_falloff_;
+    }
+
+    inline Weapon::Type GetType() const override {
+      return Type::TurretWeapon;
+    }
 
     float Dps(const ResistanceProfile* res) const override;
 
@@ -176,6 +210,51 @@ class TurretWeapon : public Weapon {
     float base_optimal_;
     float base_falloff_;
     float base_tracking_;
+};
+
+class WeaponContainer {
+  public:
+    WeaponContainer() = default;
+
+    WeaponContainer(vector<shared_ptr<Weapon>>& weapons) {
+      Init(weapons);
+    }
+
+    vector<shared_ptr<Weapon>>* GetWeaponsByType(Weapon::Type weapon_type) {
+      auto weapons_it = weapons_map_.find(weapon_type);
+
+      if (weapons_it == weapons_map_.end()) {
+        return nullptr;
+      }
+  
+      return &weapons_it->second;
+    }
+
+    void Init(const vector<shared_ptr<Weapon>>& weapons) {
+      if (weapons.empty())
+        return;
+
+      int i = 0;
+      while (i < Weapon::Type::Total) {
+        Weapon::Type type = static_cast<Weapon::Type>(i);
+
+        vector<shared_ptr<Weapon>> specific_weapons;
+
+        for (const auto& weapon : weapons) {
+          if (weapon->GetType() == type) {
+            specific_weapons.emplace_back(weapon);
+          }
+        }
+
+        if (!specific_weapons.empty()) {
+          weapons_map_.emplace(type, specific_weapons);
+        }
+        ++i;
+      }
+    }
+
+  private:
+    unordered_map<Weapon::Type, vector<shared_ptr<Weapon>>> weapons_map_;
 };
 
 } // namespace eve
