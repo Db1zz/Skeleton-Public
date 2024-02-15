@@ -2,7 +2,7 @@
 #define TYPE_CONVERTER_H_
 
 #include "hp_resistances.h"
-#include "effects.h"
+#include "ewar_modules.h"
 
 #include <string>
 
@@ -13,9 +13,9 @@ using std::vector;
 using std::string;
 using std::shared_ptr;
 
-ShipEffect::Type StrToType(const string &type);
+EwarModule::Type StrToType(const string &type);
 
-ShipEffect::Type StrToEwar(const vector<string> &csv_lines, int index);
+EwarModule::Type StrToEwar(const vector<string> &csv_lines, int index);
 
 // HullType StrToHull(const string &type);
 

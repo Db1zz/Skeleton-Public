@@ -4,16 +4,16 @@
 namespace eve {
 namespace converter {
 
-static const std::unordered_map<string, ShipEffect::Type> kStrEffectMap = {
-  {"Energy Neutralizer", ShipEffect::Type::EnergyNeutralizer},
-  {"Tracking Disruptor", ShipEffect::Type::WeaponDisruptor},
-  {"Guidance Disruptor", ShipEffect::Type::GuidanceDisruptor},
-  {"Stasis Webifier", ShipEffect::Type::StasisWebifier},
-  {"Warp Scrambler", ShipEffect::Type::WarpScrambler},
-  {"Target Painter", ShipEffect::Type::TargetPainter},
-  {"Sensor Dampener", ShipEffect::Type::SensorDampener},
-  {"Armor", ShipEffect::Type::RemoteRepair},
-  {"Shield", ShipEffect::Type::RemoteRepair}
+static const std::unordered_map<string, EwarModule::Type> kStrEffectMap = {
+  {"Energy Neutralizer", EwarModule::Type::EnergyNeutralizer},
+  {"Tracking Disruptor", EwarModule::Type::WeaponDisruptor},
+  {"Guidance Disruptor", EwarModule::Type::GuidanceDisruptor},
+  {"Stasis Webifier", EwarModule::Type::StasisWebifier},
+  {"Warp Scrambler", EwarModule::Type::WarpScrambler},
+  {"Target Painter", EwarModule::Type::TargetPainter},
+  {"Sensor Dampener", EwarModule::Type::SensorDampener},
+  {"Armor", EwarModule::Type::RemoteRepair},
+  {"Shield", EwarModule::Type::RemoteRepair}
 };
 
 // TODO: implement HullType class|enum 
@@ -25,15 +25,15 @@ static const std::unordered_map<string, ShipEffect::Type> kStrEffectMap = {
 //   {"frigate", HullType::Frigate}
 // };
 
-ShipEffect::Type StrToType(const string &type) {
+EwarModule::Type StrToType(const string &type) {
   auto type_it = kStrEffectMap.find(type);
   if (type_it == kStrEffectMap.end()) {
-    return ShipEffect::Type::None;
+    return EwarModule::Type::None;
   } 
   return type_it->second;
 }
 
-ShipEffect::Type StrToEwar(const vector<string> &csv_lines, int index) {
+EwarModule::Type StrToEwar(const vector<string> &csv_lines, int index) {
   return StrToType(csv_lines[index]);
 }
 
