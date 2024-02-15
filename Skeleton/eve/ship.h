@@ -1,8 +1,9 @@
 #ifndef SHIP_H_
 #define SHIP_H_
 
-#include "hp_resistances.h"
 #include "effects.h"
+#include "ewar_modules.h"
+#include "hp_resistances.h"
 #include "ship_weapon.h"
 
 #include <memory>
@@ -16,73 +17,14 @@ using std::unique_ptr;
 using std::shared_ptr;
 using std::vector;
 
-class ShipEffect;
-class ShipEffectsMap;
-
 // TODO: Add DroneBay class to manage and 
 // store data about Ship DroneBay
 
-class ShipEwarModule {
-  public:
-    ShipEwarModule(float optimal, float falloff, float rof, 
-                   const shared_ptr<ShipEffect>& effect);
-                     
-    inline shared_ptr<ShipEffect>& Effect() {
-      return effect_;
-    }
-
-    inline float Optimal() const {
-      return optimal_;
-    }
-
-    inline float Falloff() const {
-      return falloff_;
-    }
-
-  private:
-    shared_ptr<ShipEffect> effect_;
-    float optimal_;
-    float falloff_;
-    float rof_;
-};
-
-class ShipEwarVector {
-  public:
-    ShipEwarVector(const ShipEwarVector&) = delete;
-
-    ShipEwarVector &operator=(const ShipEwarVector&) = delete;
-
-    ShipEwarVector(vector<shared_ptr<ShipEwarModule>>& ewar_module_list);
-
-    ShipEwarModule* operator[](int index) {
-      return ewar_modules_[index].get();
-    }
-
-    vector<ShipEwarModule*> FindEwarByType(ShipEffect::Type type);
-
-    void AddEwarModule(shared_ptr<ShipEwarModule>& ewar_module);
-
-    bool RemoveEwarModule(ShipEwarModule* ewar_module);
-
-    inline int Size() {
-      return ewar_modules_.size();
-    }
-
-    inline bool Empty() {
-      return ewar_modules_.size();
-    }
-
-    inline auto begin() {
-      return ewar_modules_.begin();
-    }
-
-    inline auto end() {
-      return ewar_modules_.end();
-    }
-
-  private:
-    vector<shared_ptr<ShipEwarModule>> ewar_modules_{};
-};
+class Effect;
+class EffectManager;
+class EffectsContainer;
+class EwarModule;
+class EwarContainer;
 
 class ShipDefense {
   public:
@@ -119,8 +61,8 @@ class ShipDefense {
       hps_ = new_val;
     } 
 
-    inline float MaxHPs() const {
-      return max_hps_;
+    inline float BaseHPS() const {
+      return base_hps_;
     } 
 
   private:
@@ -128,7 +70,7 @@ class ShipDefense {
     const float armor_hp_;  
     const float shield_hp_;
     const float hull_hp_;
-    const float max_hps_;
+    const float base_hps_;
     float hps_;
 };
 
@@ -142,8 +84,8 @@ class ShipTargeting {
       return range_;
     }
 
-    inline float MaxRange() const {
-      return max_range_;
+    inline float BaseRange() const {
+      return base_range_;
     }
 
     inline void SetRange(float new_val) {
@@ -151,7 +93,7 @@ class ShipTargeting {
     }
 
   private:
-    const float max_range_;
+    const float base_range_;
     float range_;
 };
 
@@ -169,12 +111,12 @@ class ShipCapacitor {
       return amount_;
     }
 
-    inline float MaxAmount() const {
-      return max_amount_;
+    inline float BaseAmount() const {
+      return base_amount_;
     }
 
-    inline float MaxRechargeRate() const {
-      return max_recharge_rate_;
+    inline float BaseRechargeRate() const {
+      return base_recharge_rate_;
     }
 
     inline void SetAmount(float new_val) {
@@ -186,16 +128,15 @@ class ShipCapacitor {
     }
 
   private:
-    const float max_recharge_rate_;
-    const float max_amount_;
+    const float base_recharge_rate_;
+    const float base_amount_;
     float recharge_rate_;
     float amount_;
 };
 
 class ShipEngine {
   public:
-    ShipEngine(float velocity)
-        : velocity_(velocity), max_velocity_(velocity) {}
+    ShipEngine(float velocity);
 
     virtual ~ShipEngine() = default;
 
@@ -203,8 +144,8 @@ class ShipEngine {
       return velocity_;
     }
 
-    inline float MaxVelocity() const {
-      return max_velocity_;
+    inline float BaseVelocity() const {
+      return base_velocity_;
     }
 
     inline void SetVelocity(float new_value) {
@@ -213,7 +154,7 @@ class ShipEngine {
 
   private:
     float velocity_;
-    const float max_velocity_;
+    const float base_velocity_;
 };
 
 class Ship {
@@ -222,14 +163,20 @@ class Ship {
          unique_ptr<ShipCapacitor>& capacitor,
          unique_ptr<ShipTargeting>& targeting,
          unique_ptr<ShipDefense>& defense,
-         vector<shared_ptr<ShipEwarModule>>& ewar_module_list,
+         vector<shared_ptr<EwarModule>>& ewar_module_list,
          vector<shared_ptr<Weapon>>& weapon_list);
 
     virtual ~Ship() = default;
 
-    virtual void ApplyEffect(const shared_ptr<ShipEffect>& effect);
+    virtual void ApplyEffect(const shared_ptr<Effect>& effect);
 
-    inline virtual ShipEffectsMap* EffectMap() {
+    virtual bool Ship::RemoveEffect(const Effect* effect);
+
+    inline WeaponContainer* Weapons() {
+      return &weapons_;
+    }
+
+    inline virtual EffectsContainer* EffectMap() {
       return &effect_map_;
     }
 
@@ -249,7 +196,7 @@ class Ship {
       return defense_.get();
     }
 
-    inline virtual ShipEwarVector* Ewar() {
+    inline virtual EwarContainer* Ewar() {
       return &ewar_;
     }
 
@@ -258,9 +205,9 @@ class Ship {
     unique_ptr<ShipCapacitor> capacitor_;
     unique_ptr<ShipTargeting> targeting_;
     unique_ptr<ShipDefense> defense_;
-    ShipEffectsMap effect_map_;
-    ShipEwarVector ewar_;
-    vector<shared_ptr<Weapon>> weapons_;
+    EffectsContainer effect_map_;
+    EwarContainer ewar_;
+    WeaponContainer weapons_;
 };
 
 } // namespace eve
