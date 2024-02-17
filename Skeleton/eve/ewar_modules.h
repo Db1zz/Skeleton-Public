@@ -11,7 +11,9 @@ using std::shared_ptr;
 using std::vector;
 using std::string;
 
+enum class EffectType;
 class Effect;
+class Ship;
 
 class EwarModule {
   public:
@@ -32,27 +34,14 @@ class EwarModule {
                float falloff, float rof, 
                const vector<shared_ptr<Effect>>& effects);
 
-    inline shared_ptr<Effect>* GetSpecifcEffect(EffectType type) {
-      for (auto& effect : effects_) {
-        if (effect->GetType() == type) {
-          return &effect;
-        }
-      }
-    }
+    virtual shared_ptr<Effect>* GetSpecifcEffect(EffectType type);
+
+    virtual void ApplyEwar(Ship* target);
+    
+    virtual void RemoveEwar(Ship* target);
 
     inline vector<shared_ptr<Effect>>* GetEffects() {
       return &effects_;
-    }
-    virtual void ApplyEwar(Ship* target) {
-      for (const auto& effect : effects_) {
-        target->ApplyEffect(effect);
-      }
-    }
-
-    virtual void RemoveEwar(Ship* target) {
-      for (const auto& effect: effects_) {
-        target->RemoveEffect(effect.get());
-      }
     }
 
     inline const string& GetSource() const {
@@ -71,6 +60,8 @@ class EwarModule {
       return falloff_;
     }
 
+    shared_ptr<EwarModule> Copy() const;
+
   private:
     string source_;
     EwarModule::Type ewar_type_;
@@ -80,23 +71,9 @@ class EwarModule {
     float rof_;
 };
 
-// class EnegryNeutralizerEwar : public EwarModule {
-//   public:
-//     EnegryNeutralizerEwar(string source, float optimal, float falloff, 
-//                           float rof, vector<float> effects_strengths);
-
-//     void ApplyEwar(Ship* target) override;
-//     void RemoveEwar(Ship* target) override;
-
-//   private:
-//     shared_ptr<EwarCapacitorRegenDecreaseEffect> cap_rech_decr_effect_;
-// };
-
 class EwarContainer {
   public:
-    EwarContainer(const EwarContainer&) = delete;
-
-    EwarContainer &operator=(const EwarContainer&) = delete;
+    EwarContainer() = default;
 
     EwarContainer(vector<shared_ptr<EwarModule>>& ewar_module_list);
 
@@ -125,6 +102,8 @@ class EwarContainer {
     inline auto end() {
       return ewar_modules_.end();
     }
+
+    EwarContainer Copy() const;
 
   private:
     vector<shared_ptr<EwarModule>> ewar_modules_{};

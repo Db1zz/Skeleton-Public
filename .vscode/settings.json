@@ -74,6 +74,11 @@
     "utility": "cpp",
     "format": "cpp",
     "stop_token": "cpp",
-    "cinttypes": "cpp"
+    "cinttypes": "cpp",
+    "deque": "cpp",
+    "cassert": "cpp",
+    "queue": "cpp",
+    "stack": "cpp",
+    "list": "cpp"
   }
 }

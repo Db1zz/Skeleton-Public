@@ -18,6 +18,7 @@ include(GoogleTest)
 
 set(SOURCE
     examples/main_example.cc
+    examples/spawns.h
     Skeleton/eve/ewar_modules.h
     Skeleton/eve/ewar_modules.cc
     Skeleton/eve/eve_math.h
@@ -42,6 +43,7 @@ set(SOURCE
     Skeleton/abyss_bot/npc_ship.h
     Skeleton/abyss_bot/npc_ship.cc
     Skeleton/abyss_bot/npc_builder.h
+    Skeleton/abyss_bot/npc_builder.cc
     tests/effect_tests.cc
     tests/math_tests.cc
 )

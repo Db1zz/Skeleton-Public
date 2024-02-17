@@ -7,6 +7,9 @@
 
 namespace eve {
 
+using std::shared_ptr;
+using std::make_unique;
+
 // *************************************************************************
 // -- Ammo Implementation for Weapons
 // *************************************************************************
@@ -17,6 +20,10 @@ MissileAmmo::MissileAmmo(float velocity, float flight_time,
       flight_time_(flight_time), 
       Ammo(dmg_profile) {}
 
+shared_ptr<Ammo> MissileAmmo::Copy() const {
+  return make_unique<MissileAmmo>(velocity_, flight_time_, &dmg_profile_);
+}
+
 TurretAmmo::TurretAmmo(float falloff_modifier, float optimal_modifier,
                        float tracking_modifier, 
                        const DamageProfile* dmg_profile)
@@ -24,6 +31,11 @@ TurretAmmo::TurretAmmo(float falloff_modifier, float optimal_modifier,
       optimal_modifier_(optimal_modifier),
       tracking_modifier_(tracking_modifier),
       Ammo(dmg_profile) {}
+
+shared_ptr<Ammo> TurretAmmo::Copy() const {
+  return make_unique<TurretAmmo>(falloff_modifier_, optimal_modifier_,
+                                 tracking_modifier_, &dmg_profile_);
+}
 
 // End of Ammo Implementation for Weapons
 
@@ -85,6 +97,17 @@ void MissileWeapon::ApplyAmmoBonuses() {
   // hull parameters like signature radius or current ship velocity.
 }
 
+shared_ptr<Weapon> MissileWeapon::Copy() const {
+  shared_ptr<Weapon> m = make_unique<MissileWeapon>(
+      rof_, reload_time_, weapon_amount_, &base_dmg_profile_);
+      
+  if (ammo_) {
+    m->LoadAmmo(ammo_->Copy());
+  }
+
+  return m;
+}
+
 // End of Missile Weapons Implementation
 
 // *************************************************************************
@@ -92,14 +115,14 @@ void MissileWeapon::ApplyAmmoBonuses() {
 // *************************************************************************
 
 TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount,
-                           float dmg_multiplier, float base_optimal,
-                           float base_falloff, float base_tracking,
+                           float dmg_multiplier, float optimal,
+                           float falloff, float tracking,
                            const DamageProfile* dmg_profile)
     : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       dmg_multiplier_(dmg_multiplier),
-      base_optimal_(base_optimal),
-      base_falloff_(base_falloff),
-      base_tracking_(base_tracking),
+      optimal_(optimal),
+      falloff_(falloff),
+      tracking_(tracking),
       ammo_(nullptr) {}
 
 float TurretWeapon::Dps(const ResistanceProfile* res) const {
@@ -125,8 +148,8 @@ void TurretWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
 }
 
 void TurretWeapon::UnloadAmmo() { 
-  SetRange(base_falloff_ + base_optimal_);
-  SetApplication(base_tracking_);
+  SetRange(falloff_ + optimal_);
+  SetApplication(tracking_);
   SetDmgProfile(BaseDmgProfile());
 }
 
@@ -134,9 +157,9 @@ void TurretWeapon::ApplyAmmoBonuses() {
   // The modifier values have to be wirtten in range 1 - 0
   // E.g OptimalModifier = 0.75 - this value means that
   // our ammo decreasing turret optimal for 25%.
-  float optimal = base_optimal_ * ammo_.get()->OptimalModifier();
-  float falloff = base_falloff_ * ammo_.get()->FalloffModifier();
-  float tracking = base_tracking_ * ammo_.get()->TrackingModifier();
+  float optimal = optimal_ * ammo_.get()->OptimalModifier();
+  float falloff = falloff_ * ammo_.get()->FalloffModifier();
+  float tracking = tracking_ * ammo_.get()->TrackingModifier();
 
   // Sets the Application that was modfied with TrackingModifier()
   // from Ammo.
@@ -149,6 +172,66 @@ void TurretWeapon::ApplyAmmoBonuses() {
 
   // Simply sets DmgProfile from ammo_ to TurretWeapon.
   SetDmgProfile(ammo_.get()->DmgProfile());
+}
+
+shared_ptr<Weapon> TurretWeapon::Copy() const {
+  shared_ptr<TurretWeapon> w = 
+      make_unique<TurretWeapon>(rof_, reload_time_, weapon_amount_,
+                                dmg_multiplier_, optimal_, falloff_, tracking_,
+                                &base_dmg_profile_);
+
+  w->ammo_ = std::static_pointer_cast<TurretAmmo>(ammo_);
+
+  return w;
+}
+
+WeaponContainer::WeaponContainer(vector<shared_ptr<Weapon>>& weapons) {
+  Init(weapons);
+}
+
+vector<shared_ptr<Weapon>>* WeaponContainer::GetWeaponsByType(
+    Weapon::Type weapon_type) 
+{
+  auto weapons_it = weapons_map_.find(weapon_type);
+
+  if (weapons_it == weapons_map_.end()) {
+    return nullptr;
+  }
+
+  return &weapons_it->second;
+}
+
+void WeaponContainer::Init(const vector<shared_ptr<Weapon>>& weapons) {
+  if (weapons.empty())
+    return;
+
+  int i = 0;
+  while (i < static_cast<int>(Weapon::Type::Total)) {
+    Weapon::Type type = static_cast<Weapon::Type>(i);
+
+    vector<shared_ptr<Weapon>> specific_weapons;
+
+    for (const auto& weapon : weapons) {
+      if (weapon->GetType() == type) {
+        specific_weapons.emplace_back(weapon);
+      }
+    }
+
+    if (!specific_weapons.empty()) {
+      weapons_map_.emplace(type, specific_weapons);
+    }
+    ++i;
+  }
+}
+
+WeaponContainer WeaponContainer::Copy() const {
+  vector<shared_ptr<Weapon>> c;
+  for (auto& wpn_type : weapons_map_) {
+    for (int i = 0; i < wpn_type.second.size(); i++) {
+      c.push_back(wpn_type.second[i]->Copy());
+    }
+  }
+  return WeaponContainer(c);
 }
 
 // End of Turret Weapons Implementation

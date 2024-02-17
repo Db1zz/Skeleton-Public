@@ -1,41 +1,56 @@
 #include "../Skeleton/eve/player_ship.h"
 #include "../Skeleton/eve/effects.h"
 #include "../Skeleton/eve/ship_weapon.h"
+#include "../Skeleton/abyss_bot/npc_builder.h"
+#include "../Skeleton/eve/type_converter.h"
+#include "../Skeleton/eve/eve_math.h"
+#include "spawns.h"
+#include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
+#include <chrono>
+#include <cassert>
+
+
+// TODO: Threat Score System Calculation
+// Description: The system should apply ewar of NPC's
+// to the player Ship and check if any of those are killing us
+// and calculate a score of a difference between base Ship stats
+// and Ship stats that was affected by NPC'c ewar.
+
+// [Spawn][Ewar] -> [PlayerShip]
+
+void CalcThreat() {
+
+}
+
+// Velocity example
+// base score - 100(score with no effects)
+// 925 - 800 = .12%(change in velocity)
+// 100 * .12 = 12(score)
+
+// Lock range example
+// Base score - 100
+// 72.5km - 50km = .32%
+// 100 * .32
+
+// Velocity
+// Capacitor
+// Lock Range
+// Dps Tank
+// Dps
 
 using namespace eve;
-
-void StackingPenaltyCalculationTest() {
-  shared_ptr<ShipEngine> e = std::make_unique<ShipEngine>(925);
-  PlayerShip ship(e);
-
-  ShipEffect effect1(ShipEffect::StasisWebifier, 50, "None1");
-  ShipEffect effect2(ShipEffect::StasisWebifier, 55, "None2");
-  ShipEffect effect3(ShipEffect::StasisWebifier, 60, "None3");
-  std::cout << "Normal velocity: " << e.get()->Velocity() << '\n';
-  ship.ApplyEffect(std::make_unique<ShipEffect>(effect1));
-  std::cout << "Applied 50% effect: " << e.get()->Velocity() << '\n';
-  ship.ApplyEffect(std::make_unique<ShipEffect>(effect2));
-  std::cout << "Applied 55% effect: " << e.get()->Velocity() << '\n';
-  ship.ApplyEffect(std::make_unique<ShipEffect>(effect3));
-  std::cout << "Applied 60% effect: " << e.get()->Velocity() << '\n';
-}
-
-void DpsCalculationTest() {
-  ResistanceProfile res(0.0, 0.0, 0.0, 0.0);
-
-  DamageProfile base_dmg(0, 0, 0, 0);
-  DamageProfile dmg_profile(0, 12, 16.8, 0);
-  shared_ptr<TurretAmmo> ammo = std::make_unique<TurretAmmo>(
-                                    0.75, 0.50, 1.0, &dmg_profile);
-  TurretWeapon weapon(4.19, 0, 5, 13.2, 18000, 225000, 11.3, &base_dmg);
-  weapon.LoadAmmo(ammo);
-  std::cout << "Dps: " << weapon.Dps(&res) << '\n';
-}
+using namespace abyss;
 
 int main() {
-  
-  // StackingPenaltyCalculationTest();
-  DpsCalculationTest();
+  // Create NPC dictionary
+
+  shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+    {"Blastgrip Tessera", "Embergrip Tessera", 
+    "Strikegrip Tessera", "Strikegrip Tessera"});
+
+  // Run Tests Here
+  testing::InitGoogleTest();
+  return RUN_ALL_TESTS();
 }

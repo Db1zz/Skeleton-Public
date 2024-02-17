@@ -21,7 +21,7 @@ class Ammo {
         : dmg_profile_(*dmg_profile) {}
 
     Ammo(DamageProfile dmg_profile)
-    : dmg_profile_(dmg_profile) {}
+        : dmg_profile_(dmg_profile) {}
 
     virtual ~Ammo() = default;
 
@@ -29,14 +29,16 @@ class Ammo {
       return &dmg_profile_;
     }
 
-  private:
+    virtual shared_ptr<Ammo> Copy() const = 0;
+
+  protected:
     DamageProfile dmg_profile_;
 };
 
 class MissileAmmo : public Ammo {
   public:
     MissileAmmo(float velocity, float flight_time, 
-            const DamageProfile* dmg_profile);
+                const DamageProfile* dmg_profile);
 
     inline float Velocity() const {
       return velocity_;
@@ -45,6 +47,8 @@ class MissileAmmo : public Ammo {
     inline float FlightTime() const {
       return flight_time_;
     }
+
+    virtual shared_ptr<Ammo> Copy() const override;
 
   private:
     float velocity_;
@@ -55,7 +59,7 @@ class TurretAmmo : public Ammo {
   public:
     TurretAmmo(float falloff_modifier, float optimal_modifier,
                float tracking_modifier, const DamageProfile* dmg_profile);
-  
+
     inline float OptimalModifier() const {
       return optimal_modifier_;
     }
@@ -67,6 +71,8 @@ class TurretAmmo : public Ammo {
     inline float TrackingModifier() const {
       return tracking_modifier_;
     }
+
+    virtual shared_ptr<Ammo> Copy() const override;
 
   private:
     float falloff_modifier_;
@@ -83,7 +89,7 @@ class TurretAmmo : public Ammo {
 
 class Weapon {
   public:
-    enum Type {
+    enum class Type {
       TurretWeapon,
       MissileWeapon,
 
@@ -95,8 +101,6 @@ class Weapon {
 
     virtual ~Weapon() = default;
 
-    // virtual WeaponType Type() const = 0; TODO
-
     virtual void LoadAmmo(const shared_ptr<Ammo>& ammo) = 0;
 
     virtual void UnloadAmmo() = 0;
@@ -104,6 +108,8 @@ class Weapon {
     virtual float Dps(const ResistanceProfile* res) const = 0;
 
     virtual Weapon::Type GetType() const = 0;
+
+    virtual shared_ptr<Weapon> Copy() const = 0;
 
     inline float WeaponAmount() const {
       return weapon_amount_;
@@ -155,7 +161,7 @@ class MissileWeapon : public Weapon {
   public:
     MissileWeapon(float rof, float reload_time, float weapon_amount,
                   const DamageProfile* dmg_profile);
-  
+
     float Dps(const ResistanceProfile* res) const override;
 
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
@@ -165,7 +171,9 @@ class MissileWeapon : public Weapon {
     inline Weapon::Type GetType() const override {
       return Type::MissileWeapon;
     }
-    
+
+    virtual shared_ptr<Weapon> Copy() const override;
+
   protected:
     void ApplyAmmoBonuses();
 
@@ -176,24 +184,26 @@ class MissileWeapon : public Weapon {
 class TurretWeapon : public Weapon {
   public:
     TurretWeapon(float rof, float reload_time, float weapon_amount,
-                 float dmg_multiplier, float base_optimal, float base_falloff,
-                 float base_tracking, const DamageProfile* dmg_profile);
+                 float dmg_multiplier, float optimal, float falloff,
+                 float tracking, const DamageProfile* dmg_profile);
 
     inline float BaseTracking() const {
-      return base_tracking_;  
+      return tracking_;  
     }
 
     inline float BaseOptimal() const {
-      return base_optimal_;
+      return optimal_;
     }
 
     inline float BaseFalloff() const {
-      return base_falloff_;
+      return falloff_;
     }
 
     inline Weapon::Type GetType() const override {
       return Type::TurretWeapon;
     }
+
+    virtual shared_ptr<Weapon> Copy() const override;
 
     float Dps(const ResistanceProfile* res) const override;
 
@@ -207,51 +217,22 @@ class TurretWeapon : public Weapon {
   private:
     shared_ptr<TurretAmmo> ammo_;
     float dmg_multiplier_;
-    float base_optimal_;
-    float base_falloff_;
-    float base_tracking_;
+    float optimal_;
+    float falloff_;
+    float tracking_;
 };
 
 class WeaponContainer {
   public:
     WeaponContainer() = default;
 
-    WeaponContainer(vector<shared_ptr<Weapon>>& weapons) {
-      Init(weapons);
-    }
+    WeaponContainer(vector<shared_ptr<Weapon>>& weapons);
 
-    vector<shared_ptr<Weapon>>* GetWeaponsByType(Weapon::Type weapon_type) {
-      auto weapons_it = weapons_map_.find(weapon_type);
+    vector<shared_ptr<Weapon>>* GetWeaponsByType(Weapon::Type weapon_type);
 
-      if (weapons_it == weapons_map_.end()) {
-        return nullptr;
-      }
-  
-      return &weapons_it->second;
-    }
+    void Init(const vector<shared_ptr<Weapon>>& weapons);
 
-    void Init(const vector<shared_ptr<Weapon>>& weapons) {
-      if (weapons.empty())
-        return;
-
-      int i = 0;
-      while (i < Weapon::Type::Total) {
-        Weapon::Type type = static_cast<Weapon::Type>(i);
-
-        vector<shared_ptr<Weapon>> specific_weapons;
-
-        for (const auto& weapon : weapons) {
-          if (weapon->GetType() == type) {
-            specific_weapons.emplace_back(weapon);
-          }
-        }
-
-        if (!specific_weapons.empty()) {
-          weapons_map_.emplace(type, specific_weapons);
-        }
-        ++i;
-      }
-    }
+    virtual WeaponContainer Copy() const ;
 
   private:
     unordered_map<Weapon::Type, vector<shared_ptr<Weapon>>> weapons_map_;

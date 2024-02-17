@@ -7,9 +7,9 @@ namespace eve {
 
 using std::make_unique;
 
-Effect::Effect(EffectSource source, EffectType type, float base_strength)
+Effect::Effect(string source, EffectType type, float strength)
     : source_(source), 
-      base_strength_(base_strength),
+      strength_(strength),
       type_(type) {}
 
 
@@ -27,6 +27,10 @@ void EwarCapacitorRegenDecreaseEffect::RemoveFromTarget(
       target->Capacitor()->RechargeRate() + strength));
 }
 
+shared_ptr<Effect> EwarCapacitorRegenDecreaseEffect::Copy() const {
+  return make_unique<EwarCapacitorRegenDecreaseEffect>(
+      source_, strength_);
+}
 
 void EwarVelocityDecreaseEffect::ApplyToTarget(Ship* target, float strength) {
   target->Engine()->SetVelocity(target->Engine()->Velocity() * strength);
@@ -34,6 +38,11 @@ void EwarVelocityDecreaseEffect::ApplyToTarget(Ship* target, float strength) {
 
 void EwarVelocityDecreaseEffect::RemoveFromTarget(Ship* target, float strength){
   target->Engine()->SetVelocity(target->Engine()->Velocity() / strength);
+}
+
+shared_ptr<Effect> EwarVelocityDecreaseEffect::Copy() const {
+  return make_unique<EwarVelocityDecreaseEffect>(
+      source_, strength_);
 }
 
 void EwarLockRangeDecreaseEffect::ApplyToTarget(Ship* target, float strength) {
@@ -46,6 +55,11 @@ void EwarLockRangeDecreaseEffect::RemoveFromTarget(
   target->Targeting()->SetRange((target->Targeting()->Range() / strength));
 }
 
+shared_ptr<Effect> EwarLockRangeDecreaseEffect::Copy() const {
+  return make_unique<EwarLockRangeDecreaseEffect>(
+      source_, strength_);
+}
+
 void EwarArmorRestorationEffect::ApplyToTarget(Ship* target, float strength) {
   // Accepts only HP/s, DON'T USE raw values.
   target->Defense()->SetHPs(target->Defense()->HPs() + strength);
@@ -54,6 +68,11 @@ void EwarArmorRestorationEffect::ApplyToTarget(Ship* target, float strength) {
 void EwarArmorRestorationEffect::RemoveFromTarget(Ship* target, float strength){
   // Accepts only HP/s, DON'T USE raw values.
   target->Defense()->SetHPs(target->Defense()->HPs() - strength);
+}
+
+shared_ptr<Effect> EwarArmorRestorationEffect::Copy() const {
+  return make_unique<EwarArmorRestorationEffect>(
+      source_, strength_);
 }
 
 EffectManager::EffectManager(EffectType effect_type, Ship* target)
@@ -138,7 +157,7 @@ void EffectsContainer::AddEffect(const shared_ptr<Effect>& effect) {
     // Emplace manager in managers_map_
     managers_map_.emplace(effect->GetType(), std::move(manager));
   } else {
-    // Simply use ApplyEffect if manager already exis in managers_map_ 
+    // Simply use ApplyEffect if manager already exist in managers_map_ 
     manager_it->second->ApplyEffect(effect);
   }
 }
@@ -166,6 +185,26 @@ EffectManager* EffectsContainer::GetEffectManager(const Effect* effect) {
 
   // Return pointer to the EffectManager
   return effect_it->second.get();
+}
+
+unique_ptr<EffectManager> EffectManager::Copy() {
+  unique_ptr<EffectManager> manager = 
+      make_unique<EffectManager>(effect_type_, target_);
+
+  for (auto& effect : effects_) {
+    manager->effects_.push_back({effect.first, effect.second->Copy()});
+  }
+
+  return std::move(manager);
+}
+
+EffectsContainer EffectsContainer::Copy() {
+  EffectsContainer container(target_);
+  for (const auto& manager : managers_map_) {
+    container.managers_map_.emplace(manager.first, manager.second->Copy());
+  }
+  
+  return container;
 }
 
 } // namespace eve

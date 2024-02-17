@@ -28,7 +28,7 @@ class AIBehavior {
       return orbit_range_;
     }
 
-  private:
+  protected:
     float orbit_range_;
 };
 
@@ -38,9 +38,16 @@ class Npc : public Ship, public AIBehavior {
         unique_ptr<ShipCapacitor>& capacitor,
         unique_ptr<ShipTargeting>& targeting,
         unique_ptr<ShipDefense>& defense,
-        vector<shared_ptr<ShipEwarModule>>& ewar_module_list,
+        vector<shared_ptr<EwarModule>>& ewar_module_list,
         vector<shared_ptr<Weapon>>& weapon_list,
-        float max_orbit_range, const string& name);
+        float max_orbit_range, 
+        const string& name);
+
+    Npc(const Ship* ship, float orbit_range, const string& name);
+
+    Npc(const Npc& copy);
+
+    virtual shared_ptr<Ship> Copy() const override;
 
     virtual inline const string& GetName() const {
       return name_;

@@ -15,7 +15,7 @@ bool CsvDatabase::Connect() {
 
   read_stream_.open(db_path_, std::ios::in);
 
-  // TODO: the write stream deletes all data in csv file
+  // TODO: the write stream that deletes all data in csv file
   // we have to fix it when the write stream will be needed.
   // write_stream_.open(db_path_);
   // read_stream_.good() && write_stream_.good()

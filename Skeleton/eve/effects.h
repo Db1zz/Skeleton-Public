@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <memory>
 #include <cassert>
+#include <string>
 
 namespace eve {
 
@@ -17,6 +18,7 @@ using std::vector;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::unordered_map;
+using std::string;
 
 enum class EffectType {
   EwarCapacitorRegenDecreaseEffect,
@@ -25,16 +27,11 @@ enum class EffectType {
   EwarArmorRestorationEffect,
 };
 
-enum class EffectSource {
-  AbyssEnironmentEffect,
-  TrackingDisruptor,
-};
-
 class Effect {
   public:
-    Effect(EffectSource source, EffectType type, float base_strength);
+    Effect(string source, EffectType type, float strength);
 
-    inline EffectSource GetSource() const {
+    inline string GetSource() const {
       return source_;
     }
 
@@ -43,10 +40,12 @@ class Effect {
     }
 
     inline float GetStrength() const {
-      return base_strength_;
+      return strength_;
     }
 
-  private:
+    virtual shared_ptr<Effect> Copy() const = 0;
+
+  protected:
     virtual void ApplyToTarget(Ship* target, float strength) = 0;
 
     virtual void RemoveFromTarget(Ship* target, float strength) = 0;
@@ -55,20 +54,22 @@ class Effect {
 
     friend EffectManager;
 
-    EffectSource source_;
+    string source_;
     EffectType type_;
-    const float base_strength_;
+    const float strength_;
 };
 
 class EwarCapacitorRegenDecreaseEffect : public Effect {
   public:
-    EwarCapacitorRegenDecreaseEffect(EffectSource source, float base_strength)
+    EwarCapacitorRegenDecreaseEffect(string source, float strength)
         : Effect(source, EffectType::EwarCapacitorRegenDecreaseEffect, 
-                 base_strength) {}
+                 strength) {}
 
     void ApplyToTarget(Ship* target, float strength) override;
 
     void RemoveFromTarget(Ship* target, float strength) override;
+
+    shared_ptr<Effect> Copy() const override;
 
     inline bool IsPercentageEffect() const override {
       return false;
@@ -77,12 +78,14 @@ class EwarCapacitorRegenDecreaseEffect : public Effect {
 
 class EwarVelocityDecreaseEffect : public Effect {
   public:
-    EwarVelocityDecreaseEffect(EffectSource source, float strength)
+    EwarVelocityDecreaseEffect(string source, float strength)
         : Effect(source, EffectType::EwarVelocityDecreaseEffect, strength) {}
 
     void ApplyToTarget(Ship* target, float strength) override;
 
     void RemoveFromTarget(Ship* target, float strength) override;
+
+    shared_ptr<Effect> Copy() const override;
 
     inline bool IsPercentageEffect() const override {
       return true;
@@ -91,12 +94,14 @@ class EwarVelocityDecreaseEffect : public Effect {
 
 class EwarLockRangeDecreaseEffect : public Effect {
   public:
-    EwarLockRangeDecreaseEffect(EffectSource source, float strength)
+    EwarLockRangeDecreaseEffect(string source, float strength)
         : Effect(source, EffectType::EwarLockRangeDecreaseEffect, strength) {}
 
     void ApplyToTarget(Ship* target, float strength) override;
 
     void RemoveFromTarget(Ship* target, float strength) override;
+
+    shared_ptr<Effect> Copy() const override;
 
     inline bool IsPercentageEffect() const override {
       return true;
@@ -105,12 +110,14 @@ class EwarLockRangeDecreaseEffect : public Effect {
 
 class EwarArmorRestorationEffect : public Effect {
   public:
-    EwarArmorRestorationEffect(EffectSource source, float strength)
+    EwarArmorRestorationEffect(string source, float strength)
         : Effect(source, EffectType::EwarArmorRestorationEffect, strength) {}
 
     void ApplyToTarget(Ship* target, float strength) override;
 
     void RemoveFromTarget(Ship* target, float strength) override;
+
+    shared_ptr<Effect> Copy() const override;
 
     inline bool IsPercentageEffect() const override {
       return false;
@@ -128,6 +135,8 @@ class EffectManager {
     void ApplyEffect(const shared_ptr<Effect>& effect);
 
     bool RemoveEffect(const Effect* to_remove);
+
+    unique_ptr<EffectManager> Copy();
 
   private:
     void RecalcEffectsAndApply(int start, int end);
@@ -148,6 +157,8 @@ class EffectsContainer {
     bool RemoveEffect(const Effect* effect);
 
     EffectManager* GetEffectManager(const Effect* effect);
+
+    EffectsContainer Copy();
 
     inline auto begin() const {
       return managers_map_.begin();

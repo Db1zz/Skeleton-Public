@@ -16,23 +16,38 @@ EwarModule::EwarModule(
       rof_(rof),
       effects_(effects) {}
 
-// EnegryNeutralizerEwar::EnegryNeutralizerEwar(
-//   string source, float optimal, float falloff, 
-//   float rof, vector<float> effects_strengths)
-//     : EwarModule(source, Type::EnergyNeutralizer,
-//                  optimal, falloff, rof, effects_strengths),
-//       cap_rech_decr_effect_(
-//         make_unique<EwarCapacitorRegenDecreaseEffect>(
-//             source, effects_strengths[0])) {}
-      
+shared_ptr<Effect>* EwarModule::GetSpecifcEffect(EffectType type) {
+  for (auto& effect : effects_) {
+    if (effect->GetType() == type) {
+      return &effect;
+    }
+  }
+  return nullptr;
+}
 
-// void EnegryNeutralizerEwar::ApplyEwar(Ship* target) {
-//   target->ApplyEffect(cap_rech_decr_effect_);
-// }
+void EwarModule::ApplyEwar(Ship* target) {
+  for (const auto& effect : effects_) {
+    target->ApplyEffect(effect);
+  }
+}
 
-// void EnegryNeutralizerEwar::RemoveEwar(Ship* target) {
+void EwarModule::RemoveEwar(Ship* target) {
+  for (const auto& effect: effects_) {
+    target->RemoveEffect(effect.get());
+  }
+}
 
-// }
+shared_ptr<EwarModule> EwarModule::Copy() const {
+  vector<shared_ptr<Effect>> effects;
+  for (auto& effect : effects_) {
+    effects.push_back(effect->Copy());
+  }
+
+  shared_ptr<EwarModule> ewar = make_unique<EwarModule>(
+      source_, ewar_type_, optimal_, falloff_, rof_, effects);
+
+  return ewar;
+}
 
 EwarContainer::EwarContainer(
     vector<shared_ptr<EwarModule>>& ewar_module_list) {
@@ -73,6 +88,18 @@ bool EwarContainer::RemoveEwarModule(EwarModule* ewar_module) {
     }
   }
   return false;
+}
+
+EwarContainer EwarContainer::Copy() const {
+  vector<shared_ptr<EwarModule>> ewar_modules;
+
+  for (auto& ewar : ewar_modules_) {
+    ewar_modules.push_back(ewar->Copy());
+  }
+
+  EwarContainer new_container(ewar_modules);
+
+  return new_container;
 }
 
 };

@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 
+
 namespace eve {
 
 using std::shared_ptr;
@@ -15,7 +16,8 @@ using std::string_view;
 
 class NpcContainer {
   public:
-    NpcContainer();
+    NpcContainer() = default;
+
     virtual ~NpcContainer();
 
     // Returns pointer to Npc in npc_container_

@@ -10,7 +10,7 @@ using namespace eve;
 
 using std::make_unique;
 
-#define STASIS_WEB_EFFECT(str)(make_unique<EwarVelocityDecreaseEffect> (EffectSource::AbyssEnironmentEffect, str))
+#define STASIS_WEB_EFFECT(str)(make_unique<EwarVelocityDecreaseEffect> ("NONE", str))
 
 class ShipCreator {
   public:
@@ -74,5 +74,5 @@ TEST(RemoveEwarVelocityDecreaseEffect, HandlesEwarWebEffect) {
 }
 
 TEST(ApplyEwarCapacitorRegenDecreaseEffect, HandlesNeutEffect) {
-  
+
 }
