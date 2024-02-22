@@ -87,7 +87,7 @@ void EffectManager::ApplyEffect(const shared_ptr<Effect>& effect) {
   }
   UnapplyEffects(effects_.size() - 1, index);
   effects_.insert(effects_.begin() + index, {0, effect});
-  RecalcEffectsAndApply(index, effects_.size());
+  RecalcEffectsAndApply(index, effects_.size() - 1);
 }
 
 bool EffectManager::RemoveEffect(const Effect* to_remove) {
@@ -115,7 +115,7 @@ void EffectManager::RecalcEffectsAndApply(int start, int end) {
 
   assert(start <= end);
 
-  for (; start < end; start++) {
+  for (; start <= end; start++) {
     float str = 0;
 
     if (effects_[start].second->IsPercentageEffect()) {
@@ -130,11 +130,9 @@ void EffectManager::RecalcEffectsAndApply(int start, int end) {
 }
 
 void EffectManager::UnapplyEffects(int start, int end) {
-  if (effects_.size() == 0)
+  if (effects_.size() == 0 || start < end)
     return;
-
-  assert(start >= end);
-
+    
   for (; start >= end; start--) {
     effects_[start].second->RemoveFromTarget(target_, 
                                              effects_[start].first);

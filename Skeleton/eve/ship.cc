@@ -17,12 +17,72 @@ ShipDefense::ShipDefense(const ShipResistances& ship_res, float armor_hp,
       armor_hp_(armor_hp),
       shield_hp_(shield_hp),
       hull_hp_(hull_hp),
-      hps_(hps),
-      base_hps_(hps) {}
+      hps_(hps) {}
 
-ShipDefense::ShipDefense(const ShipDefense& d)
-    : ShipDefense(d.ship_res_, d.armor_hp_, d.shield_hp_, 
-                  d.hull_hp_, d.hps_) {}
+// ShipDefense::ShipDefense(const ShipDefense& d)
+//     : ShipDefense(d.ship_res_, d.armor_hp_, d.shield_hp_, 
+//                   d.hull_hp_, d.hps_) {}
+
+void ShipDefense::ApplyDps(std::pair<string, float> dps) {
+  hps_ -= dps.second;
+  applied_dps_.push_back(dps);
+}
+
+bool ShipDefense::RemoveDps(std::pair<string, float> dps) {
+  for (int i = 0; i < applied_dps_.size(); i++) {
+    if (applied_dps_[i].first == dps.first &&
+        applied_dps_[i].second == dps.second)
+    {
+      hps_ += dps.second;
+      applied_dps_.erase(applied_dps_.begin() + i);
+      return true;
+    }
+  }
+  return false;
+}
+
+float ShipDefense::Ehp(const WeaponContainer& weapons) const {
+  int weapon_amount = weapons.TotalWeapons();
+  int ehp_sum = 0;
+
+  for (const auto& specifc_weapon_vector : weapons) {
+    for (const auto& weapon : specifc_weapon_vector.second) {
+      ehp_sum += Ehp(weapon->DmgProfile());
+    }
+  }
+
+  // The expression (ehp_sum / weapon_amount) calculates average ehp.
+  return ehp_sum / weapon_amount;
+}
+
+float ShipDefense::Ehp(const DamageProfile* dmg_prof) const {
+  float total_ehp = 0;
+  int curr_raw_hp_index = 0;
+  vector<float> raw_hp{shield_hp_, armor_hp_, hull_hp_};
+
+  // Note: П О Ч Е М У
+  const ShipResistances& res = ship_res_;
+
+  for (const auto profile : res) {
+    int dmg_type_amount = 0;
+    float res_multiplier = 0;
+
+    for (int i = 0; i < profile.Size(); i++) {
+      if ((*dmg_prof)[i] > 0) {
+        dmg_type_amount += 1;
+        res_multiplier += profile[i];
+      }
+    }
+
+    if (res_multiplier > 0) {
+      res_multiplier = 1 / ((1 - res_multiplier) / dmg_type_amount);
+      total_ehp += raw_hp[curr_raw_hp_index] * res_multiplier;
+    }
+    ++curr_raw_hp_index;
+  }
+
+  return total_ehp;
+}
 
 unique_ptr<ShipDefense> ShipDefense::Copy() const {
   return make_unique<ShipDefense>(*this);
@@ -85,8 +145,8 @@ Ship::Ship(unique_ptr<ShipEngine>& engine,
       capacitor_(std::move(capacitor)),
       targeting_(std::move(targeting)),
       defense_(std::move(defense)),
-      ewar_(ewar_container),
-      weapons_(weapon_container),
+      ewar_(ewar_container.Copy()),
+      weapons_(weapon_container.Copy()),
       effect_map_(this) {}
 
 Ship::Ship(const Ship& c)
@@ -102,8 +162,39 @@ void Ship::ApplyEffect(const shared_ptr<Effect>& effect) {
   effect_map_.AddEffect(effect);
 }
 
+void Ship::ApplyEffect(const shared_ptr<EwarModule>& ewar) {
+  for (const auto& effect : *ewar.get()) {
+    ApplyEffect(effect);
+  }
+}
+
 bool Ship::RemoveEffect(const Effect* effect) {
   return effect_map_.RemoveEffect(effect);
+}
+
+bool Ship::RemoveEffect(const EwarModule* ewar) {
+  bool result = false;
+  for (const auto& effect : *ewar) {
+    result = RemoveEffect(effect.get());
+  }
+
+  return result;
+}
+
+float Ship::Dps(const ShipResistances* res) {
+  float total_dps = 0;
+
+  for (const auto& weapon_type : weapons_) {
+    for (const auto& weapon : weapon_type.second) {
+      total_dps += weapon->Dps(res);
+    }
+  }
+
+  return total_dps;
+}
+
+float Ship::Dps(const shared_ptr<Ship>& target) {
+  return Dps(&target->Defense()->ShipRes());
 }
 
 shared_ptr<Ship> Ship::Copy() const {

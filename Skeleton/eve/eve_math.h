@@ -15,6 +15,17 @@ float CalcStackingPenalty(float affected_parameter_value,
 float ApplyStackingPenalty(float affected_parameter_value,
                            const std::vector<float>& attributes);
 
+template<typename T>
+T MultiplyByValuesInArray(T value_to_multiply, const std::vector<T>& values) {
+  if (values.size() > 0) {
+    for (auto& value : values) {
+      value_to_multiply *= value;
+    }
+  }
+
+  return value_to_multiply;
+}
+
 float DecreaseByPercent(float value, float percent);
 
 float DivideByPercent(float value, float percent);

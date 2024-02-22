@@ -31,7 +31,7 @@ class ShipDefense {
     ShipDefense(const ShipResistances& ship_res, float armor_hp,
                 float shield_hp, float hull_hp, float hps);
 
-    ShipDefense(const ShipDefense& d);
+    // ShipDefense(const ShipDefense& d);
 
     virtual ~ShipDefense() = default;
 
@@ -62,19 +62,23 @@ class ShipDefense {
     inline void SetHPs(float new_val) {
       hps_ = new_val;
     } 
+    
+    void ApplyDps(std::pair<string, float> dps);
+    bool RemoveDps(std::pair<string, float> dps);
 
-    inline float BaseHPS() const {
-      return base_hps_;
-    }
+    float Ehp(const WeaponContainer& weapons) const;
+    float Ehp(const DamageProfile* dmg_prof) const;
 
     virtual unique_ptr<ShipDefense> Copy() const;
 
   private:
+    // string=source, float=source_dps
+    vector<std::pair<string, float>> applied_dps_;
+
     ShipResistances ship_res_;
     const float armor_hp_;  
     const float shield_hp_;
     const float hull_hp_;
-    const float base_hps_;
     float hps_;
 };
 
@@ -195,7 +199,15 @@ class Ship {
 
     virtual void ApplyEffect(const shared_ptr<Effect>& effect);
 
+    virtual void ApplyEffect(const shared_ptr<EwarModule>& ewar);
+
     virtual bool RemoveEffect(const Effect* effect);
+
+    virtual bool RemoveEffect(const EwarModule* ewar);
+
+    virtual float Dps(const ShipResistances* res);
+    
+    virtual float Dps(const shared_ptr<Ship>& target);
 
     virtual shared_ptr<Ship> Copy() const;
 

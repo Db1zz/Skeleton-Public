@@ -19,3 +19,5 @@ AbyssNpcMissileWeapon::AbyssNpcMissileWeapon(const vector<string>& v,
                                              const DamageProfile* dmg)
     : MissileWeapon(stof(v[33]), 1, stof(v[32]), dmg) {}
 }
+
+// 31 * 32 / 33

@@ -1,4 +1,5 @@
 #include "ship_weapon.h"
+#include "ship.h"
 #include "hp_resistances.h"
 #include "eve_math.h"
 
@@ -44,8 +45,8 @@ shared_ptr<Ammo> TurretAmmo::Copy() const {
 // -- Weapon Base Implementation
 // *************************************************************************
 
-Weapon::Weapon(float rof, float reload_time, float weapon_amount, 
-               const DamageProfile* dmg_profile)
+Weapon::Weapon(float rof, float reload_time, 
+               float weapon_amount, const DamageProfile* dmg_profile)
     : rof_(rof),
       reload_time_(reload_time), 
       weapon_amount_(weapon_amount),
@@ -64,14 +65,25 @@ MissileWeapon::MissileWeapon(float rof, float reload_time,
     : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       ammo_(nullptr) {}
 
+float MissileWeapon::Dps(const ShipResistances* res) const {
+  float total_dps = 0;
+  for (const auto& profile : *res) {
+    total_dps += Dps(&profile);
+  }
+
+  return total_dps / 3;
+}
+
 float MissileWeapon::Dps(const ResistanceProfile* res) const {
   const DamageProfile* dmg_profile = DmgProfile();
-  float dps = ((DecreaseByPercent(dmg_profile->Em(), res->Em()) +
-               DecreaseByPercent(dmg_profile->Thermal(), res->Thermal()) +
-               DecreaseByPercent(dmg_profile->Kinetic(), res->Kinetic()) + 
-               DecreaseByPercent(dmg_profile->Explosive(), res->Explosive())) *
-               weapon_amount_) / rof_;
-  return dps;
+
+  float dps = 0;
+
+  for (int i = 0; i < res->Size(); i++) {
+    dps += DecreaseByPercent((*dmg_profile)[i], (*res)[i]);
+  }
+
+  return (dps * weapon_amount_) / rof_;
 }
 
 void MissileWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
@@ -114,10 +126,9 @@ shared_ptr<Weapon> MissileWeapon::Copy() const {
 // -- Turret Weapons Implementation
 // *************************************************************************
 
-TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount,
-                           float dmg_multiplier, float optimal,
-                           float falloff, float tracking,
-                           const DamageProfile* dmg_profile)
+TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount, 
+                           float dmg_multiplier, float optimal, float falloff,
+                           float tracking, const DamageProfile* dmg_profile)
     : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       dmg_multiplier_(dmg_multiplier),
       optimal_(optimal),
@@ -125,14 +136,27 @@ TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount,
       tracking_(tracking),
       ammo_(nullptr) {}
 
+float TurretWeapon::Dps(const ShipResistances* res) const {
+  float total_dps = 0;
+
+  for (const auto& profile : *res) {
+    total_dps += Dps(&profile);
+  }
+
+  // Get Average Dps
+  return total_dps / 3;
+}
+
 float TurretWeapon::Dps(const ResistanceProfile* res) const {
   const DamageProfile* dmg_profile = DmgProfile();
-  float dps = (((DecreaseByPercent(dmg_profile->Em(), res->Em()) +
-               DecreaseByPercent(dmg_profile->Thermal(), res->Thermal()) +
-               DecreaseByPercent(dmg_profile->Kinetic(), res->Kinetic()) + 
-               DecreaseByPercent(dmg_profile->Explosive(), res->Explosive())) *
-               weapon_amount_) / rof_) * dmg_multiplier_;
-  return dps;
+
+  float dps = 0;
+
+  for (int i = 0; i < res->Size(); i++) {
+    dps += DecreaseByPercent((*dmg_profile)[i], (*res)[i]);
+  }
+  
+  return ((dps * weapon_amount_) / rof_) * dmg_multiplier_;
 }
 
 void TurretWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
@@ -202,24 +226,34 @@ vector<shared_ptr<Weapon>>* WeaponContainer::GetWeaponsByType(
 }
 
 void WeaponContainer::Init(const vector<shared_ptr<Weapon>>& weapons) {
-  if (weapons.empty())
+  if (weapons.empty()) {
     return;
+  }
 
   int i = 0;
   while (i < static_cast<int>(Weapon::Type::Total)) {
+    // This variable will determine which weapons will hold
+    // the vector specific_weapons.
     Weapon::Type type = static_cast<Weapon::Type>(i);
 
+    // Holds only one type of weapons.
     vector<shared_ptr<Weapon>> specific_weapons;
 
     for (const auto& weapon : weapons) {
       if (weapon->GetType() == type) {
         specific_weapons.emplace_back(weapon);
+        total_weapons_amount_ += 1;
       }
     }
-
+  
+    // If specific_weapons contains weapons then
+    // just simply add it in the weapons_map_;
     if (!specific_weapons.empty()) {
       weapons_map_.emplace(type, specific_weapons);
     }
+
+    // By incrementing 'i' we are changing the type of weapon
+    // to store.
     ++i;
   }
 }
@@ -232,6 +266,16 @@ WeaponContainer WeaponContainer::Copy() const {
     }
   }
   return WeaponContainer(c);
+}
+
+vector<shared_ptr<Weapon>> WeaponContainer::GetAllWeapons() const {
+  vector<shared_ptr<Weapon>> weapons;
+  for (const auto& weapon_array : weapons_map_) {
+    for (const auto& weapon : weapon_array.second) {
+      weapons.push_back(weapon);
+    }
+  }
+  return weapons;
 }
 
 // End of Turret Weapons Implementation

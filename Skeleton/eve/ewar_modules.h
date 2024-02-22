@@ -60,6 +60,14 @@ class EwarModule {
       return falloff_;
     }
 
+    inline auto begin() const {
+      return effects_.begin();
+    }
+
+    inline auto end() const {
+      return effects_.end();
+    }
+
     shared_ptr<EwarModule> Copy() const;
 
   private:
@@ -87,19 +95,19 @@ class EwarContainer {
 
     bool RemoveEwarModule(EwarModule* ewar_module);
 
-    inline int Size() {
+    inline int Size() const {
       return ewar_modules_.size();
     }
 
-    inline bool Empty() {
+    inline bool Empty() const {
       return ewar_modules_.size();
     }
 
-    inline auto begin() {
+    inline auto begin() const {
       return ewar_modules_.begin();
     }
 
-    inline auto end() {
+    inline auto end() const {
       return ewar_modules_.end();
     }
 

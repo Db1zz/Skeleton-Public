@@ -104,7 +104,7 @@ class Weapon {
     virtual void LoadAmmo(const shared_ptr<Ammo>& ammo) = 0;
 
     virtual void UnloadAmmo() = 0;
-
+    virtual float Dps(const ShipResistances* res) const = 0;
     virtual float Dps(const ResistanceProfile* res) const = 0;
 
     virtual Weapon::Type GetType() const = 0;
@@ -162,6 +162,7 @@ class MissileWeapon : public Weapon {
     MissileWeapon(float rof, float reload_time, float weapon_amount,
                   const DamageProfile* dmg_profile);
 
+    float Dps(const ShipResistances* res) const override;
     float Dps(const ResistanceProfile* res) const override;
 
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
@@ -205,6 +206,7 @@ class TurretWeapon : public Weapon {
 
     virtual shared_ptr<Weapon> Copy() const override;
 
+    float Dps(const ShipResistances* res) const override;
     float Dps(const ResistanceProfile* res) const override;
 
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
@@ -232,10 +234,25 @@ class WeaponContainer {
 
     void Init(const vector<shared_ptr<Weapon>>& weapons);
 
-    virtual WeaponContainer Copy() const ;
+    virtual WeaponContainer Copy() const;
+
+    inline int TotalWeapons() const {
+      return total_weapons_amount_;
+    }
+
+    inline auto begin() const {
+      return weapons_map_.begin();
+    }
+
+    inline auto end() const {
+      return weapons_map_.end();
+    }
+
+    vector<shared_ptr<Weapon>> GetAllWeapons() const;
 
   private:
     unordered_map<Weapon::Type, vector<shared_ptr<Weapon>>> weapons_map_;
+    int total_weapons_amount_;
 };
 
 } // namespace eve

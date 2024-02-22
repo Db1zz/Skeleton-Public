@@ -44,11 +44,16 @@ set(SOURCE
     Skeleton/abyss_bot/npc_ship.cc
     Skeleton/abyss_bot/npc_builder.h
     Skeleton/abyss_bot/npc_builder.cc
+    Skeleton/abyss_bot/scores.h
+    Skeleton/abyss_bot/scores.cc
+    Skeleton/abyss_bot/spawn_evaluator.h
+    Skeleton/abyss_bot/spawn_evaluator.cc
     tests/effect_tests.cc
     tests/math_tests.cc
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE})
+
 target_link_libraries(${PROJECT_NAME}
   gtest
   gtest_main

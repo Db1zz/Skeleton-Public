@@ -52,8 +52,14 @@ class NpcContainer {
                         NpcContainer &npc_dictionary);
     
     // Returns true if NPC was successfully added in npc_container_,
-    // will return false if NPC already exist in npc_container_.
+    // will NOT return false if NPC already exist in npc_container_
+    // but adds to the amount of NPC by 1
     virtual bool AddNpc(const shared_ptr<Npc>& npc_data);
+
+    // Returns true if NPC was successfully added in npc_container_,
+    // will NOT return false if NPC already exist in npc_container_
+    // but adds to the amount of NPC by 1
+    virtual bool AddNpc(const shared_ptr<Npc>& npc_data, int npc_amount);
 
     // RemoveNpc completely removes specifc NPC
     // from npc_container_. If NPC does not exist in
@@ -67,6 +73,10 @@ class NpcContainer {
     // Npc and if amount of NPC's == 0 this function
     // will automaticaly delete the ship from npc_container_.
     virtual bool DecreaseAmount(const string& npc_name, int amount = 1);
+
+    // Allocates new memory space
+    // and Copies all Npc's from Container A to Container B.
+    virtual shared_ptr<NpcContainer> Copy() const;
 
     // Returns iterator of the beginning npc_container_.
     inline auto begin()  {

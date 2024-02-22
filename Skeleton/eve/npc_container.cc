@@ -4,6 +4,7 @@
 
 namespace eve {
 
+using std::make_unique;
 using std::string;
 using std::cout;
 
@@ -52,6 +53,18 @@ bool NpcContainer::AddNpc(const shared_ptr<Npc>& npc_data) {
   return true;
 }
 
+bool NpcContainer::AddNpc(const shared_ptr<Npc>& npc_data, int npc_amount) {
+  const string& npc_name = npc_data->GetName();
+  if (IsExist(npc_name)) {
+    IncreaseAmount(npc_name, npc_amount);
+    return true;
+  }
+
+  npc_container_.insert({npc_name, {npc_data, npc_amount}});
+  total_npc_amount_ += npc_amount;
+  return true;
+}
+
 bool NpcContainer::RemoveNpc(const string& npc_name) {
   // Check if NPC exist in npc_container_
   if (!IsExist(npc_name)) {
@@ -88,7 +101,7 @@ bool NpcContainer::DecreaseAmount(const string& npc_name, int amount) {
   }
   
   int* npc_amount = GetNpcAmount(npc_name);
-  npc_amount -= amount;
+  *npc_amount -= amount;
   total_npc_amount_ -= amount;
 
   if (*npc_amount <= 0) {
@@ -96,6 +109,23 @@ bool NpcContainer::DecreaseAmount(const string& npc_name, int amount) {
   }
 
   return true;
+}
+ 
+shared_ptr<NpcContainer> NpcContainer::Copy() const {
+  shared_ptr<NpcContainer> new_container = 
+      make_unique<NpcContainer>();
+
+  for (const auto& npc_data : npc_container_) {
+    int npc_amount{npc_data.second.second};
+    shared_ptr<Npc> new_npc = 
+        std::static_pointer_cast<Npc>(npc_data.second.first->Copy());
+    
+    assert(new_npc != nullptr);
+
+    new_container->AddNpc(new_npc, npc_amount);
+  }
+
+  return new_container;
 }
 
 bool NpcContainer::IsExist(const string& npc_name)  {

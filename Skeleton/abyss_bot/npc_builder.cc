@@ -27,8 +27,12 @@ unique_ptr<ShipDefense> AbyssNpcBuilder::BuildDefense(const vector<string>& s) {
     ResistanceProfile(stof(s[11]), stof(s[12]), stof(s[13]), stof(s[14]))
   };
 
+  float shield_hp = stof(s[15]) - stof(s[42]);
+  float armor_hp = stof(s[16]) - stof(s[41]);
+  float hull_hp = stof(s[17]) - stof(s[43]);
+
   unique_ptr<ShipDefense> defense = make_unique<ShipDefense>(
-    res, stof(s[16]), stof(s[15]), stof(s[17]), stof(s[67]));
+    res, armor_hp, shield_hp, hull_hp, stof(s[67]));
   return defense;
 }
 
@@ -45,7 +49,7 @@ shared_ptr<EwarModule> AbyssNpcBuilder::BuildEwarModule
   if (type == EwarModule::Type::EnergyNeutralizer) {
     float strength = stof(s[type_index+1]);
     effects.push_back(
-      make_unique<EwarCapacitorRegenDecreaseEffect>(source, strength));
+      make_unique<EwarCapacitorRegenDecreaseEffect>(source, strength / rof));
 
   } else if (type == EwarModule::Type::StasisWebifier) {
     float strength = stof(s[type_index+1]);
