@@ -186,7 +186,9 @@ class TurretWeapon : public Weapon {
   public:
     TurretWeapon(float rof, float reload_time, float weapon_amount,
                  float dmg_multiplier, float optimal, float falloff,
-                 float tracking, const DamageProfile* dmg_profile);
+                 float tracking, const DamageProfile* dmg_profile,
+                 float dmg_multiplier_per_cycle,
+                 float dmg_max_spool_multiplier);
 
     inline float BaseTracking() const {
       return tracking_;  
@@ -219,6 +221,8 @@ class TurretWeapon : public Weapon {
   private:
     shared_ptr<TurretAmmo> ammo_;
     float dmg_multiplier_;
+    float dmg_multiplier_per_cycle_;
+    float dmg_max_spool_multiplier_;
     float optimal_;
     float falloff_;
     float tracking_;

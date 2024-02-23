@@ -126,11 +126,15 @@ shared_ptr<Weapon> MissileWeapon::Copy() const {
 // -- Turret Weapons Implementation
 // *************************************************************************
 
-TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount, 
+TurretWeapon::TurretWeapon(float rof, float reload_time, float weapon_amount,
                            float dmg_multiplier, float optimal, float falloff,
-                           float tracking, const DamageProfile* dmg_profile)
+                           float tracking, const DamageProfile* dmg_profile,
+                           float dmg_multiplier_per_cycle,
+                           float dmg_max_spool_multiplier)
     : Weapon(rof, reload_time, weapon_amount, dmg_profile),
       dmg_multiplier_(dmg_multiplier),
+      dmg_max_spool_multiplier_(dmg_max_spool_multiplier),
+      dmg_multiplier_per_cycle_(dmg_multiplier_per_cycle),
       optimal_(optimal),
       falloff_(falloff),
       tracking_(tracking),
@@ -156,6 +160,10 @@ float TurretWeapon::Dps(const ResistanceProfile* res) const {
     dps += DecreaseByPercent((*dmg_profile)[i], (*res)[i]);
   }
   
+  if (dmg_max_spool_multiplier_) {
+    dps *= dmg_max_spool_multiplier_;
+  }
+
   return ((dps * weapon_amount_) / rof_) * dmg_multiplier_;
 }
 
@@ -202,7 +210,9 @@ shared_ptr<Weapon> TurretWeapon::Copy() const {
   shared_ptr<TurretWeapon> w = 
       make_unique<TurretWeapon>(rof_, reload_time_, weapon_amount_,
                                 dmg_multiplier_, optimal_, falloff_, tracking_,
-                                &base_dmg_profile_);
+                                &base_dmg_profile_,
+                                dmg_multiplier_per_cycle_,
+                                dmg_max_spool_multiplier_);
 
   w->ammo_ = std::static_pointer_cast<TurretAmmo>(ammo_);
 
