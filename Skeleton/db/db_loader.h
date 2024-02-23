@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 namespace db {
 
@@ -23,7 +24,7 @@ class CsvDatabase : public Database {
   public:
     CsvDatabase() = default;
 
-    CsvDatabase(const string_view db_path);
+    CsvDatabase(const string_view relative_db_path);
 
     bool Connect() override;
 
@@ -33,10 +34,10 @@ class CsvDatabase : public Database {
 
     bool Write(const string_view data) override;
 
-    void SetDbPath(const string_view db_path);
+    void SetDbPath(const string_view relative_db_path);
 
   protected:
-    string db_path_;
+    std::filesystem::path db_path_;
     std::ifstream read_stream_;
     std::ofstream write_stream_;
 };
