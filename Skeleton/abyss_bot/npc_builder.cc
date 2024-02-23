@@ -82,7 +82,12 @@ shared_ptr<EwarModule> AbyssNpcBuilder::BuildRemoteRepairModule(
 }
 
 shared_ptr<NpcContainer> AbyssNpcBuilder::Build() {
-  db::CsvDatabaseParser db("/Users/georgiyonischenko/Desktop/Programming/Skeleton/Skeleton/abyss_bot/csv/encoded-AbyssNpc_database.csv");
+  string exe_path{std::filesystem::current_path()};
+  string db_path{"/../Skeleton/abyss_bot/csv/encoded-AbyssNpc_database.csv"};
+  assert(exe_path != "");
+
+  db::CsvDatabaseParser db(exe_path + db_path);
+
   db.Connect();
 
   NpcContainer npc_dictionary;
