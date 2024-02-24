@@ -35,6 +35,26 @@ T SumOfVector(std::vector<T> values);
 
 float RoundF(float value);
 
+// Read about this function: 
+// https://wiki.eveuniversity.org/Velocity#Angular_Velocity
+float CalcAngularVelocity(float ship_velocity, float target_orbit_range) {
+  // Formula: angular_vel = ship_velocity / target_orbit_range
+  return ship_velocity / target_orbit_range;
+}
+
+float CalcTurretHitProbability(float angular_velocity,
+                               float turret_tracking,
+                               float turret_falloff,
+                               float turret_optimal,
+                               float target_signature_radius,
+                               float distance);
+
+float CalcMissileApplication(float damage,
+                             float target_sig_radius, 
+                             float missile_expl_radius,
+                             float missile_expl_velocity,
+                             float target_velocity);
+
 } // namespace eve
 
 #endif // EVE_MATH_H_
