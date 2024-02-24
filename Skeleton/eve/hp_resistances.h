@@ -8,72 +8,96 @@ namespace eve {
 
 using std::vector;
 
-class ResistanceProfile {
+class DamageProfile {
   public:
-    ResistanceProfile() = default;
+    DamageProfile();
 
+    DamageProfile(float em, float thermal, float kinetic, float explosive);
+
+    DamageProfile(const DamageProfile& copy);
+
+    inline DamageProfile Copy() const {
+      return DamageProfile(*this);
+    }
+
+    virtual ~DamageProfile() = default;
+
+    virtual inline void SetEm(float new_val) {
+      dmg_types_[0] = new_val;
+    }
+
+    virtual inline void SetThermal(float new_val) {
+      dmg_types_[1] = new_val;
+    }
+
+    virtual inline void SetKinetic(float new_val) {
+      dmg_types_[2] = new_val;
+    }
+
+    virtual inline void SetExplosive(float new_val) {
+      dmg_types_[3] = new_val;
+    }
+
+    inline float Em() const {
+      return dmg_types_[0];
+    }
+
+    inline float Thermal() const {
+      return dmg_types_[1];
+    }
+    
+    inline float Kinetic() const {
+      return dmg_types_[2];
+    }
+
+    inline float Explosive() const {
+      return dmg_types_[3];
+    }
+
+    inline auto begin() const {
+      return dmg_types_.begin();
+    }
+
+    inline auto end() const {
+      return dmg_types_.end();
+    }
+
+    inline float operator[](float index) const {
+      return dmg_types_[index];
+    }
+
+    inline size_t Size() const {
+      return dmg_types_.size();
+    } 
+
+  protected:
+    vector<float> dmg_types_;
+};
+
+class ResistanceProfile : public DamageProfile {
+  public:
     ResistanceProfile(float em, float thermal, float kinetic, float explosive);
 
     ResistanceProfile(const ResistanceProfile& copy);
 
-    virtual ~ResistanceProfile() = default;
-
-    inline float Em() const {
-      return *em_;
+    inline void SetEm(float new_val) override {
+      dmg_types_[0] = GetValidValue(new_val);
     }
 
-    inline float Thermal() const {
-      return *thermal_;
-    }
-    
-    inline float Kinetic() const {
-      return *kinetic_;
+    inline void SetThermal(float new_val) override {
+      dmg_types_[1] = GetValidValue(new_val);
     }
 
-    inline float Explosive() const {
-      return *explosive_;
+    inline void SetKinetic(float new_val) override {
+      dmg_types_[2] = GetValidValue(new_val);
     }
 
-    inline void SetEm(float new_val) {
-      resistances_[0] = GetValidValue(new_val);
+    inline void SetExplosive(float new_val) override {
+      dmg_types_[3] = GetValidValue(new_val);
     }
-
-    inline void SetThermal(float new_val) {
-      resistances_[1] = GetValidValue(new_val);
-    }
-
-    inline void SetKinetic(float new_val) {
-      resistances_[2] = GetValidValue(new_val);
-    }
-
-    inline void SetExplosive(float new_val) {
-      resistances_[3] = GetValidValue(new_val);
-    }
-
-    inline auto begin() const {
-      return resistances_.begin();
-    }
-
-    inline auto end() const {
-      return resistances_.end();
-    }
-
-    inline float operator[](float index) const {
-      return resistances_[index];
-    }
-
-    inline size_t Size() const {
-      return resistances_.size();
-    } 
 
   private:
     float GetValidValue(float value);
-
-    vector<float> resistances_{0, 0, 0, 0};
-    float* em_{&resistances_[0]};
-    float* thermal_{&resistances_[1]};
-    float* kinetic_{&resistances_[2]};
-    float* explosive_{&resistances_[3]};
 };
 
 class ShipResistances {
@@ -86,18 +110,18 @@ class ShipResistances {
     ShipResistances(ResistanceProfile&& shield, ResistanceProfile&& armor,
                     ResistanceProfile&& hull);
 
-    ShipResistances(const ShipResistances& copy); 
+    ShipResistances(const ShipResistances& copy);
 
     inline ResistanceProfile Shield() const {
-      return *shield_;
+      return profiles_[0];
     }
 
     inline ResistanceProfile Armor() const {
-      return *armor_;
+      return profiles_[1];
     }
 
     inline ResistanceProfile Hull() const {
-      return *hull_;
+      return profiles_[2];
     }
 
     inline void SetShield(ResistanceProfile new_val) {
@@ -126,72 +150,6 @@ class ShipResistances {
 
   private:
     vector<ResistanceProfile> profiles_{};
-    ResistanceProfile* shield_ = nullptr;
-    ResistanceProfile* armor_ = nullptr;
-    ResistanceProfile* hull_ = nullptr;
-};
-
-class DamageProfile {
-  public:
-    DamageProfile() = default;
-
-    DamageProfile(float em, float thermal, float kinetic, float explosive);
-
-    virtual ~DamageProfile() = default;
-
-    inline float Em() const {
-      return *em_;
-    }
-
-    inline float Thermal() const {
-      return *thermal_;
-    }
-
-    inline float Kinetic() const {
-      return *kinetic_;
-    }
-
-    inline float Explosive() const {
-      return *explosive_;
-    }
-
-    inline void SetEm(float new_val) {
-      dmg_types_[0] = new_val;
-    }
-
-    inline void SetThermal(float new_val) {
-      dmg_types_[1] = new_val;
-    }
-
-    inline void SetKinetic(float new_val) {
-      dmg_types_[2] = new_val;
-    }
-
-    inline void SetExplosive(float new_val) {
-      dmg_types_[3] = new_val;
-    }
-
-    inline auto begin() const {
-      return dmg_types_.begin();
-    }
-
-    inline auto end() const {
-      return dmg_types_.end();
-    }
-    inline float operator[](float index) const {
-      return dmg_types_[index];
-    }
-
-    inline size_t Size() const {
-      return dmg_types_.size();
-    }
-
-  private:
-    vector<float> dmg_types_{0, 0, 0, 0};
-    float* em_{&dmg_types_[0]};
-    float* thermal_{&dmg_types_[1]};
-    float* kinetic_{&dmg_types_[2]};
-    float* explosive_{&dmg_types_[3]};
 };
 
 } // namepsace eve
