@@ -24,7 +24,7 @@ Npc::Npc(const Ship* ship, float orbit_range, const string& name)
 Npc::Npc(const Npc& c)
     : Npc(&c, c.orbit_range_, c.name_) {}
 
-shared_ptr<Ship> Npc::Copy() const {
+shared_ptr<Ship> Npc::Copy() {
   return make_unique<Npc>(*this);
 }
 

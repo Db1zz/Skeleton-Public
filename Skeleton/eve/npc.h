@@ -48,7 +48,7 @@ class Npc : public Ship, public AIBehavior {
 
     Npc(const Npc& copy);
 
-    virtual shared_ptr<Ship> Copy() const override;
+    virtual shared_ptr<Ship> Copy() override;
 
     virtual inline const string& GetName() const {
       return name_;

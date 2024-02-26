@@ -118,14 +118,17 @@ float NpcEvaluator::Evaulate(const shared_ptr<Npc>& target_to_evaulate,
 #define REMOTE_REP_MULTIPLIER 1.2f
 
 float SpawnEvaluator::GetCapactiorRegScore(
-    const shared_ptr<Ship>& affected_ship,
-    const shared_ptr<Ship>& ship)
+    const shared_ptr<Bot>& affected_bot,
+    const shared_ptr<Bot>& bot)
 { 
+  shared_ptr<Ship>& affected_bot_ship = affected_bot->Ship();
+  shared_ptr<Ship>& bot_ship = bot->Ship();
+
   float score = 1.0f;
 
-  if (affected_ship->Capacitor()->RechargeRate() < 0) {
-    score += fabs(affected_ship->Capacitor()->RechargeRate() /
-                  ship->Capacitor()->RechargeRate());
+  if (affected_bot_ship->Capacitor()->RechargeRate() < 0) {
+    score += fabs(affected_bot_ship->Capacitor()->RechargeRate() /
+                  bot_ship->Capacitor()->RechargeRate());
     
     if (score != 1.0f) {
       score = score * SURVIVIAL_MULTIPLIER * ENERGY_NEUT_MULTIPLIER;
@@ -136,12 +139,15 @@ float SpawnEvaluator::GetCapactiorRegScore(
   return score;
 }
 
-float SpawnEvaluator::GetDpsTankScore(const shared_ptr<Ship>& affected_ship,
-                                      const shared_ptr<Ship>& ship)
+float SpawnEvaluator::GetDpsTankScore(const shared_ptr<Bot>& affected_bot,
+                                      const shared_ptr<Bot>& bot)
 {
+  shared_ptr<Ship>& affected_bot_ship = affected_bot->Ship();
+  shared_ptr<Ship>& bot_ship = bot->Ship();
+
   float score = 1;
-  float affected_hps = affected_ship->Defense()->HPs();
-  float base_hps = ship->Defense()->HPs();
+  float affected_hps = affected_bot_ship->Defense()->HPs();
+  float base_hps = bot_ship->Defense()->HPs();
 
   score += fabs(std::min(0.0f, affected_hps / base_hps))
           * SURVIVIAL_MULTIPLIER * DPS_TANK_MULTIPLIER;
@@ -150,14 +156,12 @@ float SpawnEvaluator::GetDpsTankScore(const shared_ptr<Ship>& affected_ship,
   return score;
 }
 
-float SpawnEvaluator::GetDpsScore(const shared_ptr<Ship>& affected_ship,
-                                  const shared_ptr<Ship>& ship)
+float SpawnEvaluator::GetDpsScore(const shared_ptr<Bot>& affected_bot,
+                                  const shared_ptr<Bot>& bot)
 {
-  float dps = affected_ship->Dps(affected_ship);
-  printf("Dps: %f\n", dps);
 
+  float dps = affected_bot->Ship()->Dps(affected_bot);
   float new_dps = dps - spawn_remote_rep_total_str_;
-  printf("NewDps: %f \n", new_dps);
 
   float score = dps / new_dps;
   if (spawn_remote_rep_total_str_ > 0) {
@@ -172,13 +176,16 @@ float SpawnEvaluator::GetDpsScore(const shared_ptr<Ship>& affected_ship,
   return score;
 }
 
-float SpawnEvaluator::GetLockRangeScore(const shared_ptr<Ship>& affected_ship,
-                                        const shared_ptr<Ship>& ship) 
+float SpawnEvaluator::GetLockRangeScore(const shared_ptr<Bot>& affected_bot,
+                                        const shared_ptr<Bot>& bot)
 {
-  float score = affected_ship->Targeting()->Range() / 
-                ship->Targeting()->Range();
+  shared_ptr<Ship>& affected_bot_ship = affected_bot->Ship();
+  shared_ptr<Ship>& bot_ship = bot->Ship();
+
+  float score = affected_bot_ship->Targeting()->Range() / 
+                bot_ship->Targeting()->Range();
   
-  float velocity_score = GetVelocityScore(affected_ship, ship);
+  float velocity_score = GetVelocityScore(affected_bot, bot);
 
   if (score != 1.0f) {
     score = (score * TIME_MULTIPLIER * SURVIVIAL_MULTIPLIER * 2);
@@ -195,15 +202,17 @@ float SpawnEvaluator::GetLockRangeScore(const shared_ptr<Ship>& affected_ship,
   return score;
 }
 
-float SpawnEvaluator::GetVelocityScore(const shared_ptr<Ship>& affected_ship,
-                                       const shared_ptr<Ship>& ship)
+float SpawnEvaluator::GetVelocityScore(const shared_ptr<Bot>& affected_bot,
+                                       const shared_ptr<Bot>& bot)
 {
+  shared_ptr<Ship>& affected_bot_ship = affected_bot->Ship();
+  shared_ptr<Ship>& bot_ship = bot->Ship();
   float score = 1;
 
-  if (affected_ship->Engine()->Velocity() != 
-      ship->Engine()->Velocity()) {
-    float temp = affected_ship->Engine()->Velocity() /
-                 ship->Engine()->Velocity();
+  if (affected_bot_ship->Engine()->Velocity() != 
+      bot_ship->Engine()->Velocity()) {
+    float temp = affected_bot_ship->Engine()->Velocity() /
+                 bot_ship->Engine()->Velocity();
     if (temp != 1.0f) {
       score += (temp * WEBIFIER_MULTIPLIER) + 
                (spawn_lock_range_score_);
@@ -231,13 +240,13 @@ shared_ptr<Bot> SpawnEvaluator::ApplyEffectsToShip(
     for (int c = npc_amount; c != 0; c--) {
       for (const auto& ewar : *npc->Ewar()) {    
         if (ewar->GetType() != EwarModule::Type::RemoteRepair) {
-          s_copy->ApplyEffect(ewar);
+          s_copy->Ship()->ApplyEffect(ewar);
         } else {
           spawn_remote_rep_total_str_ +=(*ewar->GetEffects())[0]->GetStrength();
         }
       }
 
-      s_copy->Defense()->ApplyDps({string(npc_name), npc->Dps(s_copy)});
+      s_copy->Ship()->Defense()->ApplyDps({string(npc_name), npc->Dps(s_copy)});
     }
   }
 
@@ -319,19 +328,18 @@ shared_ptr<Bot> SpawnEvaluator::ApplyEffectsToShip(
 
 shared_ptr<Npc> SpawnEvaluator::GetTarget(
     const shared_ptr<NpcContainer>& spawn,
-    const shared_ptr<Bot>& bot_ship,
-    const shared_ptr<Bot>& affected_bot_ship) 
+    const shared_ptr<Bot>& bot,
+    const shared_ptr<Bot>& affected_bot) 
 {
-  float capacitor_reg_score = 
-      GetCapactiorRegScore(affected_bot_ship, bot_ship);
+  float capacitor_reg_score = GetCapactiorRegScore(affected_bot, bot);
 
-  float dps_tank_score = GetDpsTankScore(affected_bot_ship, bot_ship);
+  float dps_tank_score = GetDpsTankScore(affected_bot, bot);
 
-  float dps_score = GetDpsScore(affected_bot_ship, bot_ship);
+  float dps_score = GetDpsScore(affected_bot, bot);
 
-  float lock_range_score = GetLockRangeScore(affected_bot_ship, bot_ship);
+  float lock_range_score = GetLockRangeScore(affected_bot, bot);
 
-  float velocity_score = GetVelocityScore(affected_bot_ship, bot_ship);
+  float velocity_score = GetVelocityScore(affected_bot, bot);
 
   shared_ptr<Npc> target = nullptr;
   float score = 0;
@@ -339,7 +347,7 @@ shared_ptr<Npc> SpawnEvaluator::GetTarget(
   for (const auto& npc_data : *spawn.get()) {
     const shared_ptr<Npc>& npc = npc_data.second.first;
     float curr_score = 0;
-    float target_ehp = GetTargetEhp(npc, affected_bot_ship);
+    float target_ehp = GetTargetEhp(npc, affected_bot->Ship());
 
     vector<EwarModule*> dampeners = 
         npc->Ewar()->FindEwarByType(EwarModule::SensorDampener);
@@ -373,10 +381,9 @@ shared_ptr<Npc> SpawnEvaluator::GetTarget(
       curr_score += dps_score * rr_str / target_ehp;
     }
 
-    float npc_weapon_dps = npc->Dps(affected_bot_ship);
+    float npc_weapon_dps = npc->Dps(affected_bot);
     if (dps_tank_score != 1.0f && npc_weapon_dps > 0) {
-      float npc_weapon_application = 0;
-      curr_score += dps_tank_score * (npc_weapon_dps * npc_weapon_application) / target_ehp;
+      curr_score += dps_tank_score * npc_weapon_dps / target_ehp;
     }
 
     curr_score *= 100000;
@@ -390,8 +397,7 @@ shared_ptr<Npc> SpawnEvaluator::GetTarget(
           << curr_score 
           << '\n';
 
-
-    if (curr_score > score) {
+    if (curr_score >= score) {
       score = curr_score;
       target = npc;
       std::cout << "Choosed new target. Score: " 
@@ -400,15 +406,15 @@ shared_ptr<Npc> SpawnEvaluator::GetTarget(
                 << target->GetName() << '\n';
     }
   }
-
-  std::cout << "Calculated Target: " << target->GetName() << '\n';
+  if (target != nullptr) 
+    std::cout << "Calculated Target: " << target->GetName() << '\n';
   return target;
 }
 
 shared_ptr<Npc> SpawnEvaluator::EvaulateTarget(
     const shared_ptr<NpcContainer>& spawn, const shared_ptr<Bot>& bot_ship)
 {
-  shared_ptr<Ship> affected_bot_ship = 
+  shared_ptr<Bot> affected_bot_ship = 
       ApplyEffectsToShip(spawn, bot_ship);
 
   shared_ptr<Npc> target = GetTarget(spawn, bot_ship, affected_bot_ship);
@@ -419,7 +425,7 @@ shared_ptr<Npc> SpawnEvaluator::EvaulateTarget(
 }
 
 void SpawnEvaluator::EvaulateSpawn(const shared_ptr<NpcContainer>& spawn,
-                                   const shared_ptr<Ship>& player_ship)
+                                   const shared_ptr<Bot>& bot_ship)
 {
   shared_ptr<NpcContainer> copy_spawn = spawn->Copy();
 
@@ -428,7 +434,7 @@ void SpawnEvaluator::EvaulateSpawn(const shared_ptr<NpcContainer>& spawn,
 
   while(copy_spawn->TotalAmountNpc() != 0) 
   {
-    shared_ptr<Npc> npc = EvaulateTarget(copy_spawn, player_ship);
+    shared_ptr<Npc> npc = EvaulateTarget(copy_spawn, bot_ship);
     npc_target_sequence_vector.push_back(npc);
     copy_spawn->DecreaseAmount(npc->GetName());
     printf("\033[1;31mTarget: %s\033[0m\n", npc->GetName().c_str());

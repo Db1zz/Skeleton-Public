@@ -1,9 +1,12 @@
 #ifndef BOT_H_
 #define BOT_H_
 
-#include "../eve/ship.h"
 #include <memory>
 #include <vector>
+
+namespace eve {
+  class Ship;
+}
 
 namespace abyss {
 
@@ -15,14 +18,17 @@ class BotBehavior {
   public:
     BotBehavior() = default;
 
-    BotBehavior(float orbit_range)
-        : orbit_range_(orbit_range) {}
+    BotBehavior(float orbit_range);
+
+    BotBehavior(const BotBehavior& copy);
+
+    virtual shared_ptr<BotBehavior> Copy() const;
 
     inline float GetOrbitRange() const {
       return orbit_range_;
     }
 
-    inline float SetOrbitRange(float new_val) {
+    inline void SetOrbitRange(float new_val) {
       orbit_range_ = new_val;
     }
 
@@ -32,20 +38,23 @@ class BotBehavior {
 
 class Bot {
   public:
-    Bot(shared_ptr<eve::Ship>& ship, );
+    Bot(shared_ptr<eve::Ship>& ship, shared_ptr<BotBehavior>& behavior);
     
-    Bot(const Bot& copy);
+    Bot(Bot& copy);
 
-    virtual shared_ptr<Bot> Copy() const {
+    virtual shared_ptr<Bot> Copy();
 
+    inline shared_ptr<eve::Ship>& Ship() {
+      return ship_;
     }
 
-    inline shared_ptr<eve::Ship> Ship() const {
-      return ship_;
+    shared_ptr<BotBehavior>& Behavior() {
+      return bot_behavior_;
     }
 
   private:
     shared_ptr<eve::Ship> ship_;
+    shared_ptr<BotBehavior> bot_behavior_;
 };
 
 } // namespace abyss

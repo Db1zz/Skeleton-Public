@@ -32,8 +32,6 @@ class ShipDefense {
     ShipDefense(const ShipResistances& ship_res, float armor_hp,
                 float shield_hp, float hull_hp, float hps);
 
-    // ShipDefense(const ShipDefense& d);
-
     virtual ~ShipDefense() = default;
 
     inline ShipResistances& ShipRes() {
@@ -254,7 +252,7 @@ class Ship {
 
     virtual float Dps(const shared_ptr<abyss::Bot>& target);
 
-    virtual shared_ptr<Ship> Copy() const;
+    virtual shared_ptr<Ship> Copy();
 
     inline WeaponContainer* Weapons() {
       return &weapons_;

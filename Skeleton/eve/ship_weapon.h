@@ -2,10 +2,13 @@
 #define SHIP_WEAPON_H_
 
 #include "hp_resistances.h"
-#include "../abyss_bot/bot.h"
 
 #include <vector>
 #include <unordered_map>
+
+namespace abyss {
+  class Bot;
+};
 
 namespace eve {
 
@@ -180,7 +183,6 @@ class MissileWeapon : public Weapon {
       return Type::MissileWeapon;
     }
 
-
     virtual shared_ptr<Weapon> Copy() const override;
 
   protected:
@@ -211,7 +213,7 @@ class TurretWeapon : public Weapon {
     }
 
     inline float Falloff() const {
-      return falloff_;
+      return falloff_ + optimal_;
     }
 
     inline Weapon::Type GetType() const override {

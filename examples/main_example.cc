@@ -1,6 +1,5 @@
 #include "../Skeleton/abyss_bot/scores.h"
 #include "../Skeleton/abyss_bot/spawn_evaluator.h"
-#include "../Skeleton/eve/player_ship.h"
 #include "../Skeleton/eve/effects.h"
 #include "../Skeleton/eve/ship_weapon.h"
 #include "../Skeleton/abyss_bot/npc_builder.h"
@@ -54,10 +53,18 @@ int main() {
   vector<shared_ptr<Weapon>> weapon_list;
 
   weapon_list.push_back(wpn);
+  
+  unique_ptr<ShipHull> hull = make_unique<ShipHull>(152.0f, 4.0f, 10.0f);
 
-    auto projected_ship = 
-      make_unique<abyss::Bot>(engine, capacitor, targeting, defense,
-                        ewar_module_list, weapon_list);
+  shared_ptr<eve::Ship> ship_base = 
+    make_unique<eve::Ship>(engine, capacitor, targeting, defense, hull,
+                           ewar_module_list, weapon_list);
+
+  shared_ptr<abyss::BotBehavior> bot_behavior 
+      = make_unique<abyss::BotBehavior>(18000);
+
+  shared_ptr<abyss::Bot> projected_bot 
+      = make_unique<abyss::Bot>(ship_base, bot_behavior);
 
   shared_ptr<NpcContainer> NPC_DICTIONARY = AbyssNpcBuilder::Build();
 
@@ -82,26 +89,27 @@ int main() {
 
   // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
   // {"Attacker Marshal Disparu Troop", "Attacker Marshal Disparu Troop",
-  //  "Marker Enforcer Disparu Troop","Assault Enforcer Disparu Troop",
-  //  "Marker Pacifier Disparu Troop", "Marker Pacifier Disparu Troop",
-  //  "Arrester Pacifier Disparu Troop", "Arrester Pacifier Disparu Troop"}, 
+  // "Marker Enforcer Disparu Troop","Assault Enforcer Disparu Troop",
+  // "Marker Pacifier Disparu Troop", "Marker Pacifier Disparu Troop",
+  // "Arrester Pacifier Disparu Troop", "Arrester Pacifier Disparu Troop"}, 
   // NPC_DICTIONARY);
 
-  // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
-  //   {"Starving Vedmak", "Starving Vedmak",
-  //    "Starving Vedmak", "Ghosting Damavik",
-  //    "Ghosting Damavik", "Ghosting Damavik",
-  //    "Ghosting Damavik", "Starving Damavik",
-  //    "Tangling Damavik", "Starving Vedmak"},
-  //   NPC_DICTIONARY);
+  shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+    {"Starving Vedmak", "Starving Vedmak",
+     "Starving Vedmak", "Ghosting Damavik",
+     "Ghosting Damavik", "Ghosting Damavik",
+     "Ghosting Damavik", "Starving Damavik",
+     "Tangling Damavik", "Starving Vedmak",
+     "Tangling Damavik", "Tangling Damavik"},
+    NPC_DICTIONARY);
 
-shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
-  {"Renewing Rodiva", "Renewing Rodiva", 
-  "Renewing Rodiva", "Tangling Kikimora",
-  "Tangling Kikimora", "Ghosting Kikimora",
-  "Ghosting Kikimora", "Tangling Damavik",
-  "Striking Kikimora"},
-  NPC_DICTIONARY);
+// shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+//   {"Renewing Rodiva", "Renewing Rodiva", 
+//   "Renewing Rodiva", "Tangling Kikimora",
+//   "Tangling Kikimora", "Ghosting Kikimora",
+//   "Ghosting Kikimora", "Tangling Damavik",
+//   "Striking Kikimora"},
+//   NPC_DICTIONARY);
 
 // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //     {"Renewing Leshak", "Renewing Leshak",
@@ -129,7 +137,7 @@ shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //     {"Arrester Pacifier Disparu Troop"}, NPC_DICTIONARY);
 
   SpawnEvaluator spawn_evaulator;
-  spawn_evaulator.EvaulateSpawn(spawn, projected_ship);
+  spawn_evaulator.EvaulateSpawn(spawn, projected_bot);
 
   // Run Tests Here
   // testing::InitGoogleTest();

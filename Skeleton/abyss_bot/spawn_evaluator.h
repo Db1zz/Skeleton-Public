@@ -49,10 +49,10 @@ class SpawnEvaluator {
 
     shared_ptr<eve::Npc> EvaulateTarget(
         const shared_ptr<eve::NpcContainer>& spawn,
-        const shared_ptr<eve::Ship>& player_ship);
+        const shared_ptr<Bot>& bot_ship);
 
     void EvaulateSpawn(const shared_ptr<eve::NpcContainer>& spawn,
-                       const shared_ptr<eve::Ship>& player_ship);
+                       const shared_ptr<Bot>& bot_ship);
 
   private:
     enum class ScoreType {
@@ -65,27 +65,27 @@ class SpawnEvaluator {
       None
     };
 
-    float GetLockRangeScore(const shared_ptr<eve::Ship>& affected_ship,
-                            const shared_ptr<eve::Ship>& ship);
+    float GetLockRangeScore(const shared_ptr<Bot>& affected_bot,
+                            const shared_ptr<Bot>& bot);
 
-    float GetVelocityScore(const shared_ptr<eve::Ship>& affected_ship,
-                           const shared_ptr<eve::Ship>& ship);
+    float GetVelocityScore(const shared_ptr<Bot>& affected_bot,
+                           const shared_ptr<Bot>& bot);
 
-    float GetCapactiorRegScore(const shared_ptr<eve::Ship>& affected_ship,
-                               const shared_ptr<eve::Ship>& ship);
+    float GetCapactiorRegScore(const shared_ptr<Bot>& affected_bot,
+                               const shared_ptr<Bot>& bot);
 
-    float GetDpsTankScore(const shared_ptr<eve::Ship>& affected_ship,
-                          const shared_ptr<eve::Ship>& ship);
+    float GetDpsTankScore(const shared_ptr<Bot>& affected_bot,
+                          const shared_ptr<Bot>& bot);
 
-    float GetDpsScore(const shared_ptr<eve::Ship>& affected_ship,
-                      const shared_ptr<eve::Ship>& ship);
+    float GetDpsScore(const shared_ptr<Bot>& affected_bot,
+                      const shared_ptr<Bot>& bot);
 
     shared_ptr<Bot> ApplyEffectsToShip(
         const shared_ptr<eve::NpcContainer>& spawn,
         const shared_ptr<Bot>& bot_ship);
 
-  shared_ptr<Npc> GetTarget(
-      const shared_ptr<NpcContainer>& spawn,
+  shared_ptr<eve::Npc> GetTarget(
+      const shared_ptr<eve::NpcContainer>& spawn,
       const shared_ptr<Bot>& bot_ship,
       const shared_ptr<Bot>& affected_bot_ship);
 

@@ -20,10 +20,6 @@ ShipDefense::ShipDefense(const ShipResistances& ship_res, float armor_hp,
       hull_hp_(hull_hp),
       hps_(hps) {}
 
-// ShipDefense::ShipDefense(const ShipDefense& d)
-//     : ShipDefense(d.ship_res_, d.armor_hp_, d.shield_hp_, 
-//                   d.hull_hp_, d.hps_) {}
-
 void ShipDefense::ApplyDps(std::pair<string, float> dps) {
   hps_ -= dps.second;
   applied_dps_.push_back(dps);
@@ -171,6 +167,7 @@ Ship::Ship(const Ship& c)
       capacitor_(c.Capacitor()->Copy()),
       targeting_(c.Targeting()->Copy()),
       defense_(c.Defense()->Copy()),
+      hull_(c.Hull()->Copy()),
       ewar_(c.ewar_.Copy()),
       weapons_(c.weapons_.Copy()),
       effect_map_(this) {}
@@ -198,6 +195,10 @@ bool Ship::RemoveEffect(const EwarModule* ewar) {
   return result;
 }
 
+float Ship::Dps(const shared_ptr<Ship>& target) {
+
+}
+
 float Ship::Dps(const ShipResistances* res) {
   float total_dps = 0;
 
@@ -220,7 +221,7 @@ float Ship::Dps(const shared_ptr<abyss::Bot>& target) {
   return total_dps;
 }
 
-shared_ptr<Ship> Ship::Copy() const {
+shared_ptr<Ship> Ship::Copy() {
   return make_unique<Ship>(*this);
 }
 

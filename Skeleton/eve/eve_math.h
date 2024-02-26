@@ -44,8 +44,7 @@ float CalcTurretHitProbability(float angular_velocity,
                                float target_signature_radius,
                                float distance);
 
-float CalcMissileApplication(float damage,
-                             float target_sig_radius, 
+float CalcMissileApplication(float target_sig_radius, 
                              float missile_expl_radius,
                              float missile_expl_velocity,
                              float target_velocity);

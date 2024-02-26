@@ -1,7 +1,7 @@
-#include "../Skeleton/eve/eve_math.h"
-#include <gtest/gtest.h>
+// #include "../Skeleton/eve/eve_math.h"
+// #include <gtest/gtest.h>
 
-using namespace eve;
+// using namespace eve;
 
 // TEST(DecreaseByPercentTest, HandlesDecimalPercent) {
 //   EXPECT_EQ(DecreaseByPercent(100, 0.10), 90);

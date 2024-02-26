@@ -1,7 +1,9 @@
 #include "ship_weapon.h"
-#include "ship.h"
 #include "hp_resistances.h"
 #include "eve_math.h"
+#include "../abyss_bot/bot.h"
+#include "ship.h"
+
 
 #include <memory>
 #include <assert.h>
@@ -10,8 +12,6 @@ namespace eve {
 
 using std::shared_ptr;
 using std::make_unique;
-
-using namespace abyss;
 
 // *************************************************************************
 // -- Ammo Implementation for Weapons
@@ -125,7 +125,7 @@ shared_ptr<Weapon> MissileWeapon::Copy() const {
 
 float MissileWeapon::Dps(const shared_ptr<abyss::Bot>& target) const {
   // TODO: add dps calculation with missile application
-  return Dps(&target->Defense()->ShipRes());
+  return Dps(&target->Ship()->Defense()->ShipRes());
 }
 
 // End of Missile Weapons Implementation
@@ -176,15 +176,16 @@ float TurretWeapon::Dps(const ResistanceProfile* res) const {
 }
 
 float TurretWeapon::Dps(const shared_ptr<abyss::Bot>& target) const {
-  float dps = Dps(&target->Defense()->ShipRes());
-  float angular_velocity = CalcAngularVelocity(target->Engine()->Velocity(), 
-                                               target->GetOrbitRange());
+  float dps = Dps(&target->Ship()->Defense()->ShipRes());
+  float angular_velocity = CalcAngularVelocity(
+      target->Ship()->Engine()->Velocity(), 
+      target->Behavior()->GetOrbitRange());
   dps *= CalcTurretHitProbability(angular_velocity,
                                   Tracking(),
                                   Falloff(),
                                   Optimal(),
-                                  target->Hull()->SignatureRadius(),
-                                  target->GetOrbitRange());
+                                  target->Ship()->Hull()->SignatureRadius(),
+                                  target->Behavior()->GetOrbitRange());
   return dps;
 }
 

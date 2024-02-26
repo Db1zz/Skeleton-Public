@@ -1,20 +1,31 @@
 #include "bot.h"
+#include "../eve/ship.h"
 
 namespace abyss {
 
+using std::make_unique;
+
 using namespace eve;
 
-Bot::Bot(unique_ptr<ShipEngine>& engine,
-         unique_ptr<ShipCapacitor>& capacitor,
-         unique_ptr<ShipTargeting>& targeting,
-         unique_ptr<ShipDefense>& defense,
-         unique_ptr<eve::ShipHull>& hull,
-         vector<shared_ptr<EwarModule>>& ewar_module_list,
-         vector<shared_ptr<Weapon>>& weapon_list)
-    : Ship(engine, capacitor, targeting, defense, hull,
-           ewar_module_list, weapon_list) {}
+BotBehavior::BotBehavior(float orbit_range)
+    : orbit_range_(orbit_range) {}
 
-Bot::Bot(const Bot& copy)
-    : Ship(copy.Ship::Copy())
+BotBehavior::BotBehavior(const BotBehavior& copy)
+    : orbit_range_(copy.GetOrbitRange()) {}
+
+shared_ptr<BotBehavior> BotBehavior::Copy() const {
+  return make_unique<BotBehavior>(*this);
+}
+
+Bot::Bot(shared_ptr<eve::Ship>& ship, shared_ptr<BotBehavior>& behavior)
+    : ship_(ship), bot_behavior_(behavior) {}
+
+Bot::Bot(Bot& copy)
+    : ship_(copy.Ship()->Copy()),
+      bot_behavior_(copy.Behavior()->Copy()) {}
+
+shared_ptr<Bot> Bot::Copy() {
+  return make_unique<Bot>(*this);
+}
 
 } // namespace abyss
