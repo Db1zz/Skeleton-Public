@@ -25,6 +25,8 @@ class AbyssNpcBuilder {
 
     static unique_ptr<ShipDefense> BuildDefense(const vector<string>& s);
 
+    static unique_ptr<ShipHull> BuildHull(const vector<string>& s);
+
     static shared_ptr<EwarModule> BuildEwarModule(
         const vector<string>& s, int type_index);
 

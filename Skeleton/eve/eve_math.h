@@ -35,12 +35,7 @@ T SumOfVector(std::vector<T> values);
 
 float RoundF(float value);
 
-// Read about this function: 
-// https://wiki.eveuniversity.org/Velocity#Angular_Velocity
-float CalcAngularVelocity(float ship_velocity, float target_orbit_range) {
-  // Formula: angular_vel = ship_velocity / target_orbit_range
-  return ship_velocity / target_orbit_range;
-}
+float CalcAngularVelocity(float ship_velocity, float target_orbit_range);
 
 float CalcTurretHitProbability(float angular_velocity,
                                float turret_tracking,

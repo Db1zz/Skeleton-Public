@@ -6,6 +6,8 @@
 #include "../Skeleton/abyss_bot/npc_builder.h"
 #include "../Skeleton/eve/type_converter.h"
 #include "../Skeleton/eve/eve_math.h"
+#include "../Skeleton/eve/npc.h"
+#include "../Skeleton/abyss_bot/bot.h"
 #include "spawns.h"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -53,8 +55,8 @@ int main() {
 
   weapon_list.push_back(wpn);
 
-  shared_ptr<Ship> projected_ship = 
-      make_unique<Ship>(engine, capacitor, targeting, defense,
+    auto projected_ship = 
+      make_unique<abyss::Bot>(engine, capacitor, targeting, defense,
                         ewar_module_list, weapon_list);
 
   shared_ptr<NpcContainer> NPC_DICTIONARY = AbyssNpcBuilder::Build();
@@ -93,13 +95,13 @@ int main() {
   //    "Tangling Damavik", "Starving Vedmak"},
   //   NPC_DICTIONARY);
 
-  // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
-  //   {"Renewing Rodiva", "Renewing Rodiva", 
-  //    "Renewing Rodiva", "Tangling Kikimora",
-  //    "Tangling Kikimora", "Ghosting Kikimora",
-  //    "Ghosting Kikimora", "Tangling Damavik",
-  //    "Striking Kikimora"},
-  //   NPC_DICTIONARY);
+shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+  {"Renewing Rodiva", "Renewing Rodiva", 
+  "Renewing Rodiva", "Tangling Kikimora",
+  "Tangling Kikimora", "Ghosting Kikimora",
+  "Ghosting Kikimora", "Tangling Damavik",
+  "Striking Kikimora"},
+  NPC_DICTIONARY);
 
 // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //     {"Renewing Leshak", "Renewing Leshak",
@@ -108,12 +110,20 @@ int main() {
 //      "Snarecaster Tessella"},
 //     NPC_DICTIONARY);
 
-shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
-    {"Blinding Leshak", "Blinding Leshak",
-     "Tangling Leshak", "Blinding Leshak",
-     "Starving Leshak", "Blinding Leshak",
-     "Snarecaster Tessella"},
-    NPC_DICTIONARY);
+// shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+//     {"Blinding Leshak", "Blinding Leshak",
+//      "Tangling Leshak", "Blinding Leshak",
+//      "Starving Leshak", "Blinding Leshak",
+//      "Snarecaster Tessella"},
+//     NPC_DICTIONARY);
+
+// shared_ptr<NpcContainer> spawn = spawns::BuildSpawn(
+//   {"Ephialtes Confuser", "Ephialtes Illuminator",
+//    "Ephialtes Illuminator", "Ephialtes Illuminator",
+//    "Ephialtes Spearfisher", "Ephialtes Spearfisher",
+//    "Ephialtes Entangler", "Ephialtes Entangler",
+//    "Ephialtes Entangler", "Drifter Assault Battleship"},
+//    NPC_DICTIONARY);
 
 // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //     {"Arrester Pacifier Disparu Troop"}, NPC_DICTIONARY);

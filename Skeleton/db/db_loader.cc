@@ -2,11 +2,12 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <assert.h>
 
 namespace db {
 
-CsvDatabase::CsvDatabase(const string_view db_path)
-    : db_path_(db_path) {}
+CsvDatabase::CsvDatabase(const string& db_path)
+    : db_path_(NormalizePath(db_path)) {}
 
 bool CsvDatabase::Connect() {
   if (db_path_.empty()) {
@@ -45,7 +46,7 @@ string CsvDatabase::Read() {
   return buffer;
 }
 
-bool CsvDatabase::Write(const string_view data_to_write) {
+bool CsvDatabase::Write(const string& data_to_write) {
   if (!write_stream_.is_open()) {
     return false;
   }
@@ -58,14 +59,26 @@ bool CsvDatabase::Write(const string_view data_to_write) {
   return true;
 }
 
-void CsvDatabase::SetDbPath(const string_view db_path) {
+void CsvDatabase::SetDbPath(const string& db_path) {
   if (db_path == "") {
     return;
   }
   db_path_ = db_path;
 }
 
-CsvDatabaseParser::CsvDatabaseParser(const string_view database_path) 
+string CsvDatabase::NormalizePath(const string& db_path) {
+  string curr_path = std::filesystem::current_path();
+
+  assert(curr_path != "");
+
+  int char_index = curr_path.find("build");
+  if (char_index != -1) {
+    curr_path.erase(curr_path.begin() + char_index, curr_path.end());
+  }
+  return curr_path + db_path;
+}
+
+CsvDatabaseParser::CsvDatabaseParser(const string& database_path) 
     : CsvDatabase(database_path) {}
 
 vector<string> CsvDatabaseParser::SplitLine(const string *line) {

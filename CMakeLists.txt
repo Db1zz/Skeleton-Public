@@ -25,7 +25,6 @@ set(SOURCE
     Skeleton/eve/eve_math.cc
     Skeleton/eve/effects.h
     Skeleton/eve/effects.cc
-    Skeleton/eve/player_ship.h
     Skeleton/eve/ship.h
     Skeleton/eve/ship.cc
     Skeleton/eve/npc.h
@@ -48,6 +47,8 @@ set(SOURCE
     Skeleton/abyss_bot/scores.cc
     Skeleton/abyss_bot/spawn_evaluator.h
     Skeleton/abyss_bot/spawn_evaluator.cc
+    Skeleton/abyss_bot/bot.h
+    Skeleton/abyss_bot/bot.cc
     tests/effect_tests.cc
     tests/math_tests.cc
 )

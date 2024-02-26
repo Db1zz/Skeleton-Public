@@ -13,6 +13,8 @@ namespace abyss {
 using std::shared_ptr;
 using std::pair;
 
+class Bot;
+
 class NpcEvaluator {
   public:
     NpcEvaluator() = default;
@@ -39,9 +41,6 @@ class NpcEvaluator {
 
     float Evaulate(const shared_ptr<eve::Npc>& target_to_evaulate,
                    const shared_ptr<eve::Ship>& player_ship);
-
-  private:
-
 };
 
 class SpawnEvaluator {
@@ -66,38 +65,32 @@ class SpawnEvaluator {
       None
     };
 
-    pair<ScoreType, float> GetLockRangeScore(
-        const shared_ptr<eve::Ship>& affected_ship,
-        const shared_ptr<eve::Ship>& ship);
+    float GetLockRangeScore(const shared_ptr<eve::Ship>& affected_ship,
+                            const shared_ptr<eve::Ship>& ship);
 
-    pair<ScoreType, float> GetVelocityScore(
-        const shared_ptr<eve::Ship>& affected_ship,
-        const shared_ptr<eve::Ship>& ship);
+    float GetVelocityScore(const shared_ptr<eve::Ship>& affected_ship,
+                           const shared_ptr<eve::Ship>& ship);
 
-    pair<ScoreType, float> GetCapactiorRegScore(
-        const shared_ptr<eve::Ship>& affected_ship,
-        const shared_ptr<eve::Ship>& ship);
+    float GetCapactiorRegScore(const shared_ptr<eve::Ship>& affected_ship,
+                               const shared_ptr<eve::Ship>& ship);
 
-    pair<ScoreType, float> GetDpsTankScore(
-        const shared_ptr<eve::Ship>& affected_ship,
-        const shared_ptr<eve::Ship>& ship);
+    float GetDpsTankScore(const shared_ptr<eve::Ship>& affected_ship,
+                          const shared_ptr<eve::Ship>& ship);
 
-    pair<SpawnEvaluator::ScoreType, float> GetDpsScore(
-        const shared_ptr<eve::Ship>& affected_ship,
-        const shared_ptr<eve::Ship>& ship);
+    float GetDpsScore(const shared_ptr<eve::Ship>& affected_ship,
+                      const shared_ptr<eve::Ship>& ship);
 
-    shared_ptr<eve::Ship> ApplyEffectsToShip(
+    shared_ptr<Bot> ApplyEffectsToShip(
         const shared_ptr<eve::NpcContainer>& spawn,
-        const shared_ptr<eve::Ship>& ship);
+        const shared_ptr<Bot>& bot_ship);
 
-shared_ptr<eve::Npc> GetTarget(
-    const shared_ptr<eve::NpcContainer>& spawn,
-    const shared_ptr<eve::Ship>& player_ship,
-    const shared_ptr<eve::Ship>& affected_player_ship);
+  shared_ptr<Npc> GetTarget(
+      const shared_ptr<NpcContainer>& spawn,
+      const shared_ptr<Bot>& bot_ship,
+      const shared_ptr<Bot>& affected_bot_ship);
 
     float spawn_remote_rep_total_str_ = 0;
     float spawn_lock_range_score_ = 0;
-    vector<shared_ptr<Npc>> dangerous_npcs_;
 };
 
 } // namespace abyss

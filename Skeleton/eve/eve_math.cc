@@ -66,6 +66,13 @@ float RoundF(float value) {
   return ((float)((int)(value * 10 + .5)) / 10);
 }
 
+// Read about this function: 
+// https://wiki.eveuniversity.org/Velocity#Angular_Velocity
+float CalcAngularVelocity(float ship_velocity, float target_orbit_range) {
+  // Formula: angular_vel = ship_velocity / target_orbit_range
+  return ship_velocity / target_orbit_range;
+}
+
 // Read about this function: https://wiki.eveuniversity.org/Turret_mechanics
 float CalcTurretHitProbability(float angular_velocity,
                                float turret_tracking,
@@ -95,8 +102,7 @@ float CalcTurretHitProbability(float angular_velocity,
 }
 
 // Read about this function: https://wiki.eveuniversity.org/Missile_mechanics
-float CalcMissileApplication(float damage,
-                             float target_sig_radius, 
+float CalcMissileApplication(float target_sig_radius, 
                              float missile_expl_radius,
                              float missile_expl_velocity,
                              float target_velocity)
@@ -121,8 +127,7 @@ float CalcMissileApplication(float damage,
 
   float min = std::min({1.0f, expr1, expr2});
 
-  // Damage * min
-  return damage * min;
+  return min;
 }
 
 } // namespace eve

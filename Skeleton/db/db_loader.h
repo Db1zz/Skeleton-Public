@@ -16,7 +16,7 @@ class Database {
   public:
     virtual bool Connect() = 0;
     virtual string Read() = 0;
-    virtual bool Write(const string_view data) = 0;
+    virtual bool Write(const string& data) = 0;
     virtual void Close() = 0;
 };
 
@@ -24,7 +24,7 @@ class CsvDatabase : public Database {
   public:
     CsvDatabase() = default;
 
-    CsvDatabase(const string_view relative_db_path);
+    CsvDatabase(const string& relative_db_path);
 
     bool Connect() override;
 
@@ -32,9 +32,11 @@ class CsvDatabase : public Database {
 
     string Read() override;
 
-    bool Write(const string_view data) override;
+    bool Write(const string& data) override;
 
-    void SetDbPath(const string_view relative_db_path);
+    void SetDbPath(const string& relative_db_path);
+
+    string NormalizePath(const string& db_path);
 
   protected:
     std::filesystem::path db_path_;
@@ -45,7 +47,7 @@ class CsvDatabase : public Database {
 class CsvDatabaseParser : public CsvDatabase {
   public:
     CsvDatabaseParser() = default;
-    CsvDatabaseParser(const string_view database_path);
+    CsvDatabaseParser(const string& database_path);
 
     vector<string> SplitLine(const string *line);  
     vector<vector<string>> ParseCsv();

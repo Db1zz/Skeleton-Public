@@ -21,19 +21,23 @@ unique_ptr<ShipTargeting> AbyssNpcBuilder::BuildTargeting(
 }
 
 unique_ptr<ShipDefense> AbyssNpcBuilder::BuildDefense(const vector<string>& s) {
-  ShipResistances res = {
-    ResistanceProfile(stof(s[3]), stof(s[4]), stof(s[5]), stof(s[6])),
-    ResistanceProfile(stof(s[7]), stof(s[8]), stof(s[9]), stof(s[10])),
-    ResistanceProfile(stof(s[11]), stof(s[12]), stof(s[13]), stof(s[14]))
-  };
+  ResistanceProfile shield(stof(s[3]), stof(s[4]), stof(s[5]), stof(s[6]));
+  ResistanceProfile armor(stof(s[3]), stof(s[4]), stof(s[5]), stof(s[6]));
+  ResistanceProfile hull(stof(s[11]), stof(s[12]), stof(s[13]), stof(s[14]));
+
+  ShipResistances res(shield, armor, hull);
 
   float shield_hp = stof(s[15]) - stof(s[42]);
   float armor_hp = stof(s[16]) - stof(s[41]);
   float hull_hp = stof(s[17]) - stof(s[43]);
 
-  unique_ptr<ShipDefense> defense = make_unique<ShipDefense>(
-    res, armor_hp, shield_hp, hull_hp, stof(s[67]));
+  auto defense = make_unique<ShipDefense>(
+      res, armor_hp, shield_hp, hull_hp, stof(s[67]));
   return defense;
+}
+
+unique_ptr<ShipHull> AbyssNpcBuilder::BuildHull(const vector<string>& s) {
+  return make_unique<ShipHull>(stof(s[2]), 2, 4);
 }
 
 shared_ptr<EwarModule> AbyssNpcBuilder::BuildEwarModule
@@ -82,12 +86,8 @@ shared_ptr<EwarModule> AbyssNpcBuilder::BuildRemoteRepairModule(
 }
 
 shared_ptr<NpcContainer> AbyssNpcBuilder::Build() {
-  string exe_path{std::filesystem::current_path()};
-  string db_path{"/../Skeleton/abyss_bot/csv/encoded-AbyssNpc_database.csv"};
-  assert(exe_path != "");
-
-  db::CsvDatabaseParser db(exe_path + db_path);
-
+  string db_path{"/Skeleton/abyss_bot/csv/encoded-AbyssNpc_database.csv"};
+  db::CsvDatabaseParser db(db_path);
   db.Connect();
 
   NpcContainer npc_dictionary;
@@ -125,14 +125,16 @@ shared_ptr<NpcContainer> AbyssNpcBuilder::Build() {
     unique_ptr<ShipCapacitor> capacitor(BuildCapacitor(line));
     unique_ptr<ShipTargeting> targeting(BuildTargeting(line));
     unique_ptr<ShipDefense> defense(BuildDefense(line));
+    unique_ptr<ShipHull> hull(BuildHull(line));
 
     shared_ptr<Npc> npc = make_unique<Npc>(
-        engine, capacitor, targeting, defense, ewar_module_list, 
+        engine, capacitor, targeting, defense, hull, ewar_module_list, 
         weapon_list, orbit_range, name);
 
     npc_dictionary.AddNpc(npc);
-}
-return make_unique<NpcContainer>(npc_dictionary);
+  }
+
+  return make_unique<NpcContainer>(npc_dictionary);
 }
 
 } // namespace abyss

@@ -25,6 +25,7 @@ class EffectManager;
 class EffectsContainer;
 class EwarModule;
 class EwarContainer;
+class Bot;
 
 class ShipDefense {
   public:
@@ -177,12 +178,53 @@ class ShipEngine {
     const float base_velocity_;
 };
 
+class ShipHull {
+  public:
+    ShipHull() = default;
+
+    ShipHull(float signature_radius, float warp_speed, float align_time);
+
+    ShipHull(const ShipHull& copy);
+
+    inline float SignatureRadius() const {
+      return signature_radius_;
+    }
+
+    inline float WarpSpeed() const {
+      return warp_speed_;
+    }
+
+    inline float AlignTime() const {
+      return align_time_;
+    }
+
+    inline void SetSignatureRadius(float new_val) {
+      signature_radius_ = new_val;
+    }
+
+    inline void SetWarpSpeed(float new_val) {
+      warp_speed_ = new_val;
+    }
+
+    inline void SetAlignTime(float new_val) {
+      align_time_ = new_val;
+    }
+
+    virtual unique_ptr<ShipHull> Copy() const;
+
+  private:  
+    float signature_radius_;
+    float warp_speed_;
+    float align_time_;
+};
+
 class Ship {
   public:
     Ship(unique_ptr<ShipEngine>& engine,
          unique_ptr<ShipCapacitor>& capacitor,
          unique_ptr<ShipTargeting>& targeting,
          unique_ptr<ShipDefense>& defense,
+         unique_ptr<ShipHull>& hull,
          vector<shared_ptr<EwarModule>>& ewar_module_list,
          vector<shared_ptr<Weapon>>& weapon_list);
 
@@ -190,6 +232,7 @@ class Ship {
          unique_ptr<ShipCapacitor>& capacitor,
          unique_ptr<ShipTargeting>& targeting,
          unique_ptr<ShipDefense>& defense,
+         unique_ptr<ShipHull>& hull,
          EwarContainer& ewar_container,
          WeaponContainer& weapon_container);
 
@@ -208,6 +251,8 @@ class Ship {
     virtual float Dps(const ShipResistances* res);
     
     virtual float Dps(const shared_ptr<Ship>& target);
+
+    virtual float Dps(const shared_ptr<abyss::Bot>& target);
 
     virtual shared_ptr<Ship> Copy() const;
 
@@ -235,6 +280,10 @@ class Ship {
       return defense_.get();
     }
 
+    inline ShipHull* Hull() const {
+      return hull_.get();
+    }
+
     inline EwarContainer* Ewar() {
       return &ewar_;
     }
@@ -244,6 +293,7 @@ class Ship {
     unique_ptr<ShipCapacitor> capacitor_;
     unique_ptr<ShipTargeting> targeting_;
     unique_ptr<ShipDefense> defense_;
+    unique_ptr<ShipHull> hull_;
     EffectsContainer effect_map_;
     EwarContainer ewar_;
     WeaponContainer weapons_;

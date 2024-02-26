@@ -11,18 +11,21 @@ namespace eve {
 using std::shared_ptr;
 using std::make_unique;
 
+using namespace abyss;
+
 // *************************************************************************
 // -- Ammo Implementation for Weapons
 // *************************************************************************
 
 MissileAmmo::MissileAmmo(float velocity, float flight_time, 
                          const DamageProfile* dmg_profile)
-    : velocity_(velocity), 
+    : missile_velocity_(velocity), 
       flight_time_(flight_time), 
       Ammo(dmg_profile) {}
 
 shared_ptr<Ammo> MissileAmmo::Copy() const {
-  return make_unique<MissileAmmo>(velocity_, flight_time_, &dmg_profile_);
+  return make_unique<MissileAmmo>(missile_velocity_, flight_time_, 
+                                  &dmg_profile_);
 }
 
 TurretAmmo::TurretAmmo(float falloff_modifier, float optimal_modifier,
@@ -120,6 +123,11 @@ shared_ptr<Weapon> MissileWeapon::Copy() const {
   return m;
 }
 
+float MissileWeapon::Dps(const shared_ptr<abyss::Bot>& target) const {
+  // TODO: add dps calculation with missile application
+  return Dps(&target->Defense()->ShipRes());
+}
+
 // End of Missile Weapons Implementation
 
 // *************************************************************************
@@ -167,6 +175,19 @@ float TurretWeapon::Dps(const ResistanceProfile* res) const {
   return ((dps * weapon_amount_) / rof_) * dmg_multiplier_;
 }
 
+float TurretWeapon::Dps(const shared_ptr<abyss::Bot>& target) const {
+  float dps = Dps(&target->Defense()->ShipRes());
+  float angular_velocity = CalcAngularVelocity(target->Engine()->Velocity(), 
+                                               target->GetOrbitRange());
+  dps *= CalcTurretHitProbability(angular_velocity,
+                                  Tracking(),
+                                  Falloff(),
+                                  Optimal(),
+                                  target->Hull()->SignatureRadius(),
+                                  target->GetOrbitRange());
+  return dps;
+}
+
 void TurretWeapon::LoadAmmo(const shared_ptr<Ammo>& ammo) {
   // Try to dynamicly cast Ammo -> TurretAmmo
   shared_ptr<TurretAmmo> turret_ammo = 
@@ -189,8 +210,8 @@ void TurretWeapon::ApplyAmmoBonuses() {
   // The modifier values have to be wirtten in range 1 - 0
   // E.g OptimalModifier = 0.75 - this value means that
   // our ammo decreasing turret optimal for 25%.
-  float optimal = optimal_ * ammo_.get()->OptimalModifier();
-  float falloff = falloff_ * ammo_.get()->FalloffModifier();
+  float optimal  = optimal_  * ammo_.get()->OptimalModifier();
+  float falloff  = falloff_  * ammo_.get()->FalloffModifier();
   float tracking = tracking_ * ammo_.get()->TrackingModifier();
 
   // Sets the Application that was modfied with TrackingModifier()

@@ -2,6 +2,7 @@
 #define SHIP_WEAPON_H_
 
 #include "hp_resistances.h"
+#include "../abyss_bot/bot.h"
 
 #include <vector>
 #include <unordered_map>
@@ -41,7 +42,7 @@ class MissileAmmo : public Ammo {
                 const DamageProfile* dmg_profile);
 
     inline float Velocity() const {
-      return velocity_;
+      return missile_velocity_;
     }
     
     inline float FlightTime() const {
@@ -51,7 +52,10 @@ class MissileAmmo : public Ammo {
     virtual shared_ptr<Ammo> Copy() const override;
 
   private:
-    float velocity_;
+    float missile_velocity_;
+    float missile_velocity_bonus_;
+    float missile_flight_time_;
+    float missile_flight_time_bouns_;
     float flight_time_;
 };
 
@@ -104,8 +108,10 @@ class Weapon {
     virtual void LoadAmmo(const shared_ptr<Ammo>& ammo) = 0;
 
     virtual void UnloadAmmo() = 0;
+
     virtual float Dps(const ShipResistances* res) const = 0;
     virtual float Dps(const ResistanceProfile* res) const = 0;
+    virtual float Dps(const shared_ptr<abyss::Bot>& target) const = 0;
 
     virtual Weapon::Type GetType() const = 0;
 
@@ -164,6 +170,7 @@ class MissileWeapon : public Weapon {
 
     float Dps(const ShipResistances* res) const override;
     float Dps(const ResistanceProfile* res) const override;
+    float Dps(const shared_ptr<abyss::Bot>& target) const override;
 
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
 
@@ -173,9 +180,14 @@ class MissileWeapon : public Weapon {
       return Type::MissileWeapon;
     }
 
+
     virtual shared_ptr<Weapon> Copy() const override;
 
   protected:
+    inline const shared_ptr<MissileAmmo>& GetAmmo() const {
+      return ammo_;
+    };
+
     void ApplyAmmoBonuses();
 
   private:
@@ -190,15 +202,15 @@ class TurretWeapon : public Weapon {
                  float dmg_multiplier_per_cycle,
                  float dmg_max_spool_multiplier);
 
-    inline float BaseTracking() const {
+    inline float Tracking() const {
       return tracking_;  
     }
 
-    inline float BaseOptimal() const {
+    inline float Optimal() const {
       return optimal_;
     }
 
-    inline float BaseFalloff() const {
+    inline float Falloff() const {
       return falloff_;
     }
 
@@ -210,6 +222,7 @@ class TurretWeapon : public Weapon {
 
     float Dps(const ShipResistances* res) const override;
     float Dps(const ResistanceProfile* res) const override;
+    float Dps(const shared_ptr<abyss::Bot>& target) const override;
 
     void LoadAmmo(const shared_ptr<Ammo>& ammo) override;
 

@@ -1,4 +1,5 @@
 #include "ship.h"
+#include "../abyss_bot/bot.h"
 #include "effects.h"
 #include "eve_math.h"
 #include <iostream>
@@ -121,16 +122,30 @@ unique_ptr<ShipEngine> ShipEngine::Copy() const {
   return make_unique<ShipEngine>(*this);
 }
 
+ShipHull::ShipHull(float signature_radius, float warp_speed, float align_time)
+    : signature_radius_(signature_radius),
+      warp_speed_(warp_speed),
+      align_time_(align_time) {}
+
+ShipHull::ShipHull(const ShipHull& c)
+    : ShipHull(c.SignatureRadius(), c.WarpSpeed(), c.AlignTime()) {}
+
+unique_ptr<ShipHull> ShipHull::Copy() const {
+  return make_unique<ShipHull>(*this);
+}
+
 Ship::Ship(unique_ptr<ShipEngine>& engine,
            unique_ptr<ShipCapacitor>& capacitor,
            unique_ptr<ShipTargeting>& targeting,
            unique_ptr<ShipDefense>& defense,
+           unique_ptr<ShipHull>& hull,
            vector<shared_ptr<EwarModule>>& ewar_module_list,
            vector<shared_ptr<Weapon>>& weapon_list)
     : engine_(std::move(engine)),
       capacitor_(std::move(capacitor)), 
       targeting_(std::move(targeting)),
       defense_(std::move(defense)),
+      hull_(std::move(hull)),
       ewar_(ewar_module_list),
       weapons_(weapon_list),
       effect_map_(this) {}
@@ -139,12 +154,14 @@ Ship::Ship(unique_ptr<ShipEngine>& engine,
            unique_ptr<ShipCapacitor>& capacitor,
            unique_ptr<ShipTargeting>& targeting,
            unique_ptr<ShipDefense>& defense,
+           unique_ptr<ShipHull>& hull,
            EwarContainer& ewar_container,
            WeaponContainer& weapon_container)
     : engine_(std::move(engine)),
       capacitor_(std::move(capacitor)),
       targeting_(std::move(targeting)),
       defense_(std::move(defense)),
+      hull_(std::move(hull)),
       ewar_(ewar_container.Copy()),
       weapons_(weapon_container.Copy()),
       effect_map_(this) {}
@@ -193,8 +210,14 @@ float Ship::Dps(const ShipResistances* res) {
   return total_dps;
 }
 
-float Ship::Dps(const shared_ptr<Ship>& target) {
-  return Dps(&target->Defense()->ShipRes());
+float Ship::Dps(const shared_ptr<abyss::Bot>& target) {
+  float total_dps = 0;
+  for (const auto& weapon_type : weapons_) {
+    for (const auto& weapon : weapon_type.second) {
+      total_dps += weapon->Dps(target);
+    }
+  }
+  return total_dps;
 }
 
 shared_ptr<Ship> Ship::Copy() const {
