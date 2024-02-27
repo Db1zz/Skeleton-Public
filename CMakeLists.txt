@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.8)
 project(Skeleton LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,12 +9,23 @@ FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG b75ecf1bed2fcd416b66c86cb6fe79122abf132e
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
 )
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
+
+if (APPLE)
+  message(STATUS "Target system MacOS")
+  find_Library (APPLICATION_SERVICES_FRAMEWORK ApplicationServices)
+else()
+  message(STATUS "Target system Windows")
+endif()
+
+find_package(OpenCV REQUIRED)
 
 set(SOURCE
     examples/main_example.cc
@@ -43,19 +54,33 @@ set(SOURCE
     Skeleton/abyss_bot/npc_ship.cc
     Skeleton/abyss_bot/npc_builder.h
     Skeleton/abyss_bot/npc_builder.cc
-    Skeleton/abyss_bot/scores.h
-    Skeleton/abyss_bot/scores.cc
     Skeleton/abyss_bot/spawn_evaluator.h
     Skeleton/abyss_bot/spawn_evaluator.cc
     Skeleton/abyss_bot/bot.h
     Skeleton/abyss_bot/bot.cc
     tests/effect_tests.cc
     tests/math_tests.cc
+    Skeleton/third_party/wincap/wincap.cc
+    Skeleton/third_party/wincap/wincap.h
+    Skeleton/third_party/vision/vision.cc
+    Skeleton/third_party/vision/vision.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE})
 
+message(STATUS "OpenCV_SOURCE_DIR: ${OpenCV_SOURCE_DIR}")
+
+message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${OpenCV_INCLUDE_DIRS}
+)
+
 target_link_libraries(${PROJECT_NAME}
   gtest
-  gtest_main
+  ${OpenCV_LIBS}
 )
+
+if (APPLE)
+  target_link_libraries(${PROJECT_NAME} ${APPLICATION_SERVICES_FRAMEWORK})
+endif()
