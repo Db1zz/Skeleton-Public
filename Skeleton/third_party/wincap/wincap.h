@@ -29,13 +29,13 @@ class Wincap  {
     };
 
   public:
-    cv::Mat GetScreenshot(int offset_x, int offset_y, 
+    cv::Mat GetDesktopScreenshot(int offset_x, int offset_y, 
                           int w, int h);
 
-    cv::Mat GetScreenshot(const WinRect& rect);
+    cv::Mat GetDesktopScreenshot(const WinRect& rect);
 
-    std::pair<int, int> GetPosition(std::pair<int, int> point, 
-                                    Wincap::WinRect& screen_pos);
+    std::pair<int, int> GetRelativePosition(std::pair<int, int> point, 
+                                            Wincap::WinRect& screen_pos);
 };
 
 #endif // WINCAP_H_

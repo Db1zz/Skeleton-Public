@@ -3,13 +3,13 @@
 #include <iostream>
 #include <vector>
 
-cv::Mat Wincap::GetScreenshot(const WinRect& rect) {
-  return GetScreenshot(rect.offset_x, rect.offset_y, rect.w, rect.h);
+cv::Mat Wincap::GetDesktopScreenshot(const WinRect& rect) {
+  return GetDesktopScreenshot(rect.offset_x, rect.offset_y, rect.w, rect.h);
 }
 
 #if defined(_WIN32) || defined(_WIN64)
 
-cv::Mat Wincap::GetScreenshot(int cropped_x, int cropped_y, 
+cv::Mat Wincap::GetDesktopScreenshot(int cropped_x, int cropped_y, 
                               int w, int h)
 {
   HDC hScreenDC = GetDC(NULL);
@@ -71,8 +71,8 @@ cv::Mat Wincap::GetScreenshot(int cropped_x, int cropped_y,
 
 #elif defined(__APPLE__)
 
-cv::Mat Wincap::GetScreenshot(int cropped_x, int cropped_y, 
-                              int w, int h) 
+cv::Mat Wincap::GetDesktopScreenshot(int cropped_x, int cropped_y, 
+                                     int w, int h) 
 {
   if (cropped_x >= w || cropped_y >= h) {
     std::cout << "FATAL ERROR: " << __FILE__ 
@@ -119,8 +119,8 @@ cv::Mat Wincap::GetScreenshot(int cropped_x, int cropped_y,
 
 #endif 
 
-std::pair<int, int> Wincap::GetPosition(std::pair<int, int> point, 
-                                        Wincap::WinRect &screen_pos)
+std::pair<int, int> Wincap::GetRelativePosition(std::pair<int, int> point, 
+                                                Wincap::WinRect &screen_pos)
 {
     return std::pair<int, int>(point.first  + screen_pos.offset_x,
                                point.second + screen_pos.offset_y);
