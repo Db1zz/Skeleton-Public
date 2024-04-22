@@ -1,3 +1,0 @@
-/Users/georgiyonischenko/Desktop/Programming/Skeleton/build/CMakeFiles/Skeleton.dir
-/Users/georgiyonischenko/Desktop/Programming/Skeleton/build/CMakeFiles/edit_cache.dir
-/Users/georgiyonischenko/Desktop/Programming/Skeleton/build/CMakeFiles/rebuild_cache.dir

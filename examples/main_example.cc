@@ -1,4 +1,4 @@
-#include "../Skeleton/abyss_bot/scores.h"
+#include "../Skeleton/third_party/img_reader/reader.h"
 #include "../Skeleton/abyss_bot/spawn_evaluator.h"
 #include "../Skeleton/eve/effects.h"
 #include "../Skeleton/eve/ship_weapon.h"
@@ -7,7 +7,10 @@
 #include "../Skeleton/eve/eve_math.h"
 #include "../Skeleton/eve/npc.h"
 #include "../Skeleton/abyss_bot/bot.h"
+#include "../Skeleton/third_party/wincap/wincap.h"
+#include "../Skeleton/third_party/vision/vision_object.h"
 #include "spawns.h"
+#include "allheaders.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
@@ -21,52 +24,54 @@ using namespace eve;
 using namespace abyss;
 
 int main() {
+  std::cout << "Start \n";
+
   // Build projected ship
-  unique_ptr<ShipEngine> engine = 
-      make_unique<ShipEngine>(925);
-  unique_ptr<ShipCapacitor> capacitor = 
-      make_unique<ShipCapacitor>(40.8, 4300);
-  unique_ptr<ShipTargeting> targeting = 
-      make_unique<ShipTargeting>(72500);
+  // unique_ptr<ShipEngine> engine = 
+  //     make_unique<ShipEngine>(925);
+  // unique_ptr<ShipCapacitor> capacitor = 
+  //     make_unique<ShipCapacitor>(40.8, 4300);
+  // unique_ptr<ShipTargeting> targeting = 
+  //     make_unique<ShipTargeting>(72500);
 
-  ShipResistances ship_res(  
-    ResistanceProfile(.519, .705, .778, .815),
-    ResistanceProfile(.278, .532, .363, .235),
-    ResistanceProfile(.25, .25, .25, .25));
+  // ShipResistances ship_res(  
+  //   ResistanceProfile(.519, .705, .778, .815),
+  //   ResistanceProfile(.278, .532, .363, .235),
+  //   ResistanceProfile(.25, .25, .25, .25));
   
-  unique_ptr<ShipDefense> defense = make_unique<ShipDefense>(ship_res, 2750, 4000, 3110, 152.0);
+  // unique_ptr<ShipDefense> defense = make_unique<ShipDefense>(ship_res, 2750, 4000, 3110, 152.0);
 
-  vector<shared_ptr<EwarModule>> ewar_module_list;
+  // vector<shared_ptr<EwarModule>> ewar_module_list;
 
-  DamageProfile dmg = {0, 0, 0, 0};
+  // DamageProfile dmg = {0, 0, 0, 0};
 
-  shared_ptr<MissileWeapon> wpn = 
-      make_unique<MissileWeapon>(4, 0, 6, &dmg);
+  // shared_ptr<MissileWeapon> wpn = 
+  //     make_unique<MissileWeapon>(4, 0, 6, &dmg);
 
-  DamageProfile missile_dmg = {0, 0, 600, 0};
+  // DamageProfile missile_dmg = {0, 0, 600, 0};
 
-  shared_ptr<MissileAmmo> missile = 
-      make_unique<MissileAmmo>(10000, 20, &missile_dmg);
+  // shared_ptr<MissileAmmo> missile = 
+  //     make_unique<MissileAmmo>(10000, 20, &missile_dmg);
 
-  wpn->LoadAmmo(missile);
+  // wpn->LoadAmmo(missile);
 
-  vector<shared_ptr<Weapon>> weapon_list;
+  // vector<shared_ptr<Weapon>> weapon_list;
 
-  weapon_list.push_back(wpn);
+  // weapon_list.push_back(wpn);
   
-  unique_ptr<ShipHull> hull = make_unique<ShipHull>(152.0f, 4.0f, 10.0f);
+  // unique_ptr<ShipHull> hull = make_unique<ShipHull>(152.0f, 4.0f, 10.0f);
 
-  shared_ptr<eve::Ship> ship_base = 
-    make_unique<eve::Ship>(engine, capacitor, targeting, defense, hull,
-                           ewar_module_list, weapon_list);
+  // shared_ptr<eve::Ship> ship_base = 
+  //   make_unique<eve::Ship>(engine, capacitor, targeting, defense, hull,
+  //                          ewar_module_list, weapon_list);
 
-  shared_ptr<abyss::BotBehavior> bot_behavior 
-      = make_unique<abyss::BotBehavior>(18000);
+  // shared_ptr<abyss::BotBehavior> bot_behavior 
+  //     = make_unique<abyss::BotBehavior>(18000);
 
-  shared_ptr<abyss::Bot> projected_bot 
-      = make_unique<abyss::Bot>(ship_base, bot_behavior);
+  // shared_ptr<abyss::Bot> projected_bot 
+  //     = make_unique<abyss::Bot>(ship_base, bot_behavior);
 
-  shared_ptr<NpcContainer> NPC_DICTIONARY = AbyssNpcBuilder::Build();
+  // shared_ptr<NpcContainer> NPC_DICTIONARY = AbyssNpcBuilder::Build();
 
   // Create NPC spawn
   // shared_ptr<NpcContainer> spawn = spawns::BuildSpawn(
@@ -94,14 +99,14 @@ int main() {
   // "Arrester Pacifier Disparu Troop", "Arrester Pacifier Disparu Troop"}, 
   // NPC_DICTIONARY);
 
-  shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
-    {"Starving Vedmak", "Starving Vedmak",
-     "Starving Vedmak", "Ghosting Damavik",
-     "Ghosting Damavik", "Ghosting Damavik",
-     "Ghosting Damavik", "Starving Damavik",
-     "Tangling Damavik", "Starving Vedmak",
-     "Tangling Damavik", "Tangling Damavik"},
-    NPC_DICTIONARY);
+  // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
+  //   {"Starving Vedmak", "Starving Vedmak",
+  //    "Starving Vedmak", "Ghosting Damavik",
+  //    "Ghosting Damavik", "Ghosting Damavik",
+  //    "Ghosting Damavik", "Starving Damavik",
+  //    "Tangling Damavik", "Starving Vedmak",
+  //    "Tangling Damavik", "Tangling Damavik"},
+  //   NPC_DICTIONARY);
 
 // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //   {"Renewing Rodiva", "Renewing Rodiva", 
@@ -136,10 +141,38 @@ int main() {
 // shared_ptr<NpcContainer> spawn =  spawns::BuildSpawn(
 //     {"Arrester Pacifier Disparu Troop"}, NPC_DICTIONARY);
 
-  SpawnEvaluator spawn_evaulator;
-  spawn_evaulator.EvaulateSpawn(spawn, projected_bot);
+// SpawnEvaluator spawn_evaulator;
+// spawn_evaulator.EvaulateSpawn(spawn, projected_bot);
+
+  // string slash_img = "/Users/georgiyonischenko/Desktop/Screenshots/Screenshot 2024-02-28 at 00.43.55.png";
+
+  // string slash_field_img = "/Users/georgiyonischenko/Desktop/Screenshots/Screenshot 2024-02-28 at 00.43.58.png";
+
+  // VisionObject slash_field(slash_field_img);
+  // VisionObject slash(slash_img);
+  // Wincap wincap;
+
+  // cv::Mat img = wincap.GetDesktopScreenshot(0, 0, 800, 1080);
+
+  // vector<cv::Rect> find_slashes_fields = slash_field.FindObjectOnImage(img);
+  // vector<cv::Rect> result 
+  //     = slash.FindObjectOnImageWithinRoi(img, find_slashes_fields);
+  // slash.HighlightRectangles(img, result);
+
+  // imshow("test", img);
+  // cv::waitKey(0);
+  
+  //
+  // //a
+  //
+  //
+  //
+  // //
+  ////
 
   // Run Tests Here
-  // testing::InitGoogleTest();
-  // return RUN_ALL_TESTS();
+  testing::InitGoogleTest();
+  return RUN_ALL_TESTS();
+
+  std::cout << "End \n";
 }

@@ -1,0 +1,24 @@
+# AI Threat Detection System for EvE Online
+
+## Project Description
+
+This project is a dedicated effort to create an Artificial Intelligence (AI) system for the popular multiplayer online game, EvE Online. The AI system is designed to monitor and assess threats from enemies in the Abyss Space, a challenging and unpredictable area within the game.
+
+This project is a part of a larger initiative aimed at enhancing the gaming experience by integrating advanced technologies.
+
+## Key Libraries Used
+
+The project leverages several powerful libraries, including:
+
+- **OpenCV**: An open-source computer vision library that includes several hundreds of computer vision algorithms.
+- **Leptonica**: A pedagogically-oriented open source site containing software that is broadly useful for image processing and image analysis applications.
+- **TesseractOCR**: An OCR engine developed by Google with a focus on line recognition, an area that has received little attention in commercial OCR software.
+- **Google Test**: Google's framework for writing C++ tests on a variety of platforms.
+
+## Functionality
+
+The AI system is designed to analyze and interpret complex in-game scenarios in real-time, providing players with crucial information about potential threats and helping them make strategic decisions. This is achieved by leveraging advanced image processing and optical character recognition (OCR) techniques.
+
+## Future Scope
+
+The aim is to provide a robust and efficient solution for threat detection in EvE Online, ultimately enhancing player safety and strategic gameplay in Abyss Space. This project represents a significant step forward in the application of AI technologies in online gaming.

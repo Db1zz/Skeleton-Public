@@ -7,8 +7,9 @@
   #include <ApplicationServices/ApplicationServices.h>
 #endif
 
-#include <string>
+#pragma warning(disable : 1696)
 
+#include <string>
 #include <opencv2/opencv.hpp>
 
 // Messages

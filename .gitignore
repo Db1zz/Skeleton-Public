@@ -1,5 +1,14 @@
+#trash
+.gitignore
+.DS_STORE
+
 #Ignore build folder
 build
 
-#Ignore .vscode folder
+#ide settings
 .vscode
+.cache
+
+#some folders
+./Skeleton/abyss_bot
+./Skeleton/client
