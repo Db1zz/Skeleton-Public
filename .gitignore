@@ -1,6 +1,6 @@
 #trash
 .gitignore
-.DS_STORE
+.DS_Store
 
 #Ignore build folder
 build
